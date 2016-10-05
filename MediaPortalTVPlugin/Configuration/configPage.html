@@ -1,0 +1,445 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MediaPortal</title>
+</head>
+<body>
+    <div id="mediaPortalConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage mediaPortalConfigurationPage" data-require="emby-button,emby-input,emby-select,emby-checkbox">
+
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="mediaPortalConfigurationForm">
+				
+                    <h1 id="connectionHeader">Media Portal Connection and Authentication</h1>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtApiHostName" name="txtApiHostName" label="Host name:" />
+                        <div class="fieldDescription">
+                            The host name (address) of the MP Extended Service
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtApiPortNumber" name="txtApiPortNumber" label="Port number:" />
+                        <div class="fieldDescription">
+                            The port number of the MP Extended Service
+                        </div>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkRequiresAuthentication" />
+                        <span>Requires authentication ("Disabled" is recommended)</span>
+                    </label>
+                    <div id="txtAuthenticationFields">
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtUserName" name="txtUserName" label="User name:" />
+                            <div class="fieldDescription">
+                                The username specified in MPExtended - Authentication
+                            </div>
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtPassword" name="txtPassword" label="Password:" />
+                            <div class="fieldDescription">
+                                The password specified in MPExtended - Authentication
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="button" id="saveAndTest" class="raised button-cancel block"><span>Save and Test Connection</span></button>
+                        <p id="connectionTestResult"></p>
+                    </div>
+                    <br />
+					
+					<h1>Channel Options</h1>
+					<div class="selectContainer">
+                        <select is="emby-select" id="selectChannelGroup" data-mini="true" label="Channel group:"></select>
+                        <div class="fieldDescription">
+                            Select the channel group you wish to use in Emby
+                        </div>
+                    </div>
+                    <div class="selectContainer">
+                        <select is="emby-select" id="selectChannelSortOption" label="Channel sort order:"></select>
+                        <div class="fieldDescription">
+                            Select the order in which the channels should be displayed
+                        </div>
+                    </div>
+					<label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkChannelByIndex" />
+                        <span>Enable channel index (Helps with channel sorting problems)</span>
+                    </label>
+                    <br />
+					
+                    <h1>Program Options</h1>
+                    <p>List against each Emby genre below, the MediaPortal program genres that belong to it</p>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtMovieGenre" name="txtMovieGenre" label="Movie genres:" />
+                        <div class="fieldDescription">
+                            Example: Movie,Film,TvMovie
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtSeriesGenre" name="txtSeriesGenre" label="Series genres:" />
+                        <div class="fieldDescription">
+                            Example: Action Series,Drama (Series),Daily Soap (limits series recordings to these genres. If unsure, leave empty.)
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtSportsGenre" name="txtSportsGenre" label="Sports genres:" />
+                        <div class="fieldDescription">
+                            Example: Sport,Football
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtNewsGenre" name="txtNewsGenre" label="News genres:" />
+                        <div class="fieldDescription">
+                            Example: News Report,Daily News
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtKidsGenre" name="txtKidsGenre" label="Kids genres:" />
+                        <div class="fieldDescription">
+                            Example: Cartoon,Animation
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtLiveGenre" name="txtLiveGenre" label="Live genres:" />
+                        <div class="fieldDescription">
+                            Example: Live Gameshow,Live Sports
+                        </div>
+                    </div>
+                    <br />
+
+                    <h1>Streaming Options</h1>
+                    <div class="selectContainer">
+                        <select is="emby-select" id="selectProfile" label="Streaming profiles:"></select>
+                        <div class="fieldDescription">
+                            Select the MPExtended profile to use for streaming (Direct is recommended)
+                        </div>
+                    </div>
+					<label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableDirectPlay" />
+                        <span>Enable potential Emby Direct Playback on supported clients by probing the stream</span>
+                    </label>
+					<div class="inputContainer">
+                        <input is="emby-input" id="txtMediaInfoDelay" name="txtMediaInfoDelay" label="Stream Delay (ms):" />
+                        <div id="txtMediaInfoDelayDesc" class="fieldDescription">
+                            The delay of MPExtended to grab Mediainfo of live streams<br />(Needed for direct play; Increase for encrypted channels)
+                        </div>
+						<div id="txtFFProbeDesc" class="fieldDescription">
+                            How long should ffprobe analyze the streams for Mediainfo<br />(Needed for direct play; Increase for encrypted channels)
+                        </div>
+						<div id="txtStreamDelayDesc" class="fieldDescription">
+                            Delays returning of the stream url to Emby<br />(Normally zero; Increase for encrypted channels or if Emby does not recognize all audio and subtitles streams)
+                        </div>
+                    </div>
+                    <label class="checkboxContainer" id="chkLimitStreamingContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkLimitStreamingField" />
+                        <span>Force Emby Transcoding of streams greater than 720p</span>
+                    </label>
+                    <br />
+					
+					<h1>Recording Options</h1>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableDirectAccess" />
+                        <span>Enable direct access of recording files</span>
+                    </label>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkRequiresPathSubstitution" />
+                        <span>Direct access of recording files requires pathsubstitution</span>
+                    </label>
+                    <div id="txtPathsubstitutionFields">
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtLocalFilePath" name="txtLocalFilePath" label="Local path:" />
+                            <div class="fieldDescription">
+                                The local recording folder specified in MediaPortal TVServer settings
+                            </div>
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtRemoteFilePath" name="txtRemoteFilePath" label="Remote share:" />
+                            <div class="fieldDescription">
+                                The remote recording share to access MediaPortal recordings
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="txtThumbnailOffset" name="txtThumbnailOffset" label="Recording thumbnail offset (mins):" />
+                        <div class="fieldDescription">
+                            The number of minutes into a programme to capture the screen grab for display
+                        </div>
+                    </div>
+                    <br />
+					
+					<h1>Advanced Options</h1>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableTimerCache" />
+                        <span>Enable caching of timers (60s)</span>
+                    </label>
+					<label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableFFProbe" />
+                        <span>Enable Emby ffprobe instead of MPExtended mediainfo</span>
+                    </label>
+					<label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableLogging" />
+                        <span>Enable Logging</span>
+                    </label>
+
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            $("#chkRequiresAuthentication").click(function () {
+                checkRequiresAuthentication();
+            });
+
+            function checkRequiresAuthentication() {
+                if ($("#chkRequiresAuthentication").prop('checked')) {
+                    $("#txtAuthenticationFields").show();
+                } else {
+                    $("#txtAuthenticationFields").hide();
+                };
+            };
+
+            $("#chkEnableDirectPlay").click(function () {
+                checkEnableDirectPlay();
+            });
+
+            function checkEnableDirectPlay() {
+                if ($("#chkEnableDirectPlay").prop('checked') && $("#chkEnableFFProbe").prop('checked')) {
+                    $("#chkLimitStreamingContainer").show();
+                    $("#txtMediaInfoDelayDesc").hide();
+                    $("#txtFFProbeDesc").show();
+                    $("#txtStreamDelayDesc").hide();
+                } else if ($("#chkEnableDirectPlay").prop('checked') && $("#chkEnableFFProbe").prop('checked', false)) {
+                    $("#chkLimitStreamingContainer").show();
+                    $("#txtMediaInfoDelayDesc").show();
+                    $("#txtFFProbeDesc").hide();
+                    $("#txtStreamDelayDesc").hide();
+                } else {
+                    $("#chkLimitStreamingContainer").hide();
+                    $("#txtMediaInfoDelayDesc").hide();
+                    $("#txtFFProbeDesc").hide();
+                    $("#txtStreamDelayDesc").show();
+                };
+            };
+
+            $("#chkRequiresPathSubstitution").click(function () {
+                checkRequiresPathSubstitution();
+            });
+
+            function checkRequiresPathSubstitution() {
+                if ($("#chkRequiresPathSubstitution").prop('checked')) {
+                    $("#txtPathsubstitutionFields").show();
+                } else {
+                    $("#txtPathsubstitutionFields").hide();
+                };
+            };
+
+            $("#chkEnableFFProbe").click(function () {
+                checkEnableDirectPlay();
+            });
+			
+			var MediaPortalConfigurationPage = {
+                pluginUniqueId: "2c6a0219-7621-4b06-8a64-da3f7038b649"
+            };
+
+            $('.mediaPortalConfigurationPage').on('pageinit', function (event) {
+
+                var page = this;
+
+                $("#saveAndTest", page).click(function () {
+                    saveAndTestConfiguration($('.mediaPortalConfigurationPage'));
+                });
+
+                $('form', page).on('submit', function (e) {
+
+                    saveConfiguration(this);
+
+                    return false; // Disable default form submission
+                });
+
+            }).on('pageshow', function (event) {
+
+                var page = this;
+
+                $("#connectionTestResult", page).hide();
+
+                Dashboard.showLoadingMsg();
+
+                ApiClient.getPluginConfiguration(MediaPortalConfigurationPage.pluginUniqueId).then(function (config) {
+
+                    $('#txtApiHostName', page).val(config.ApiHostName);
+                    $('#txtApiPortNumber', page).val(config.ApiPortNumber);
+                    $('#chkRequiresAuthentication', page).checked(config.RequiresAuthentication || false).checkboxradio("refresh");
+                    $('#txtUserName', page).val(config.UserName);
+                    $('#txtPassword', page).val(config.Password);
+                    $('#chkChannelByIndex', page).checked(config.ChannelByIndex || false).checkboxradio("refresh");
+                    $('#txtMediaInfoDelay', page).val(config.MediaInfoDelay);
+                    $('#chkEnableDirectPlay', page).checked(config.EnableDirectPlay || false).checkboxradio("refresh");
+                    $('#chkLimitStreaming', page).checked(config.LimitStreaming || false).checkboxradio("refresh");
+                    $('#chkEnableDirectAccess', page).checked(config.EnableDirectAccess || false).checkboxradio("refresh");
+                    $('#chkRequiresPathSubstitution', page).checked(config.RequiresPathSubstitution || false).checkboxradio("refresh");
+                    $('#txtLocalFilePath', page).val(config.LocalFilePath);
+                    $('#txtRemoteFilePath', page).val(config.RemoteFilePath);
+                    $('#txtThumbnailOffset', page).val(config.PreviewThumbnailOffsetMinutes);
+                    $('#chkEnableTimerCache', page).checked(config.EnableTimerCache || false).checkboxradio("refresh");
+                    $('#chkEnableFFProbe', page).checked(config.EnableFFProbe || false).checkboxradio("refresh");
+                    $('#chkEnableLogging', page).checked(config.EnableLogging || false).checkboxradio("refresh");
+
+                    checkRequiresAuthentication()
+                    checkEnableDirectPlay()
+                    checkRequiresPathSubstitution();
+                    loadSelects(config, page);
+                    loadGenres(config, page);
+
+                    TestConnection();
+
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            function loadSelects(config, page) {
+
+                // load in the profiles
+                ApiClient.ajax({
+                    type: "GET",
+                    url: ApiClient.getUrl("MediaPortalPlugin/Profiles"),
+                    dataType: "json"
+                }).then(function (profiles) {
+                    $('#selectProfile', page).html(profiles.map(function (profile) {
+                        var selectedText = profile == config.StreamingProfileName ? " selected" : "";
+                        return '<option value="' + profile + '"' + selectedText + '>' + profile + '</option>';
+                    }));
+                });
+
+                ApiClient.ajax({
+                    type: "GET",
+                    url: ApiClient.getUrl("MediaPortalPlugin/ChannelGroups"),
+                    dataType: "json"
+                }).then(function (groups) {
+                    $('#selectChannelGroup', page).html(groups.map(function (group) {
+                        var selectedText = group.Id == config.DefaultChannelGroup ? " selected" : "";
+                        return '<option value="' + group.Id + '"' + selectedText + '>' + group.GroupName + '</option>';
+                    }));
+                });
+
+                ApiClient.ajax({
+                    type: "GET",
+                    url: ApiClient.getUrl("MediaPortalPlugin/ChannelSortOptions"),
+                    dataType: "json"
+                }).then(function (options) {
+                    $('#selectChannelSortOption', page).html(options.map(function (option) {
+                        var selectedText = option.Id == config.DefaultChannelSortOrder ? " selected" : "";
+                        return '<option value="' + option.Id + '"' + selectedText + '>' + option.Description + '</option>';
+                    }));
+                });
+            }
+
+            function loadGenres(config, page) {
+
+                if (config != null && config.GenreMappings) {
+
+                    if (config.GenreMappings["GENREMOVIE"] != null) {
+                        $('#txtMovieGenre', page).val(config.GenreMappings["GENREMOVIE"].join(','));
+                    }
+                    if (config.GenreMappings["GENRESERIES"] != null) {
+                        $('#txtSeriesGenre', page).val(config.GenreMappings["GENRESERIES"].join(','));
+                    }
+                    if (config.GenreMappings["GENRESPORT"] != null) {
+                        $('#txtSportsGenre', page).val(config.GenreMappings["GENRESPORT"].join(','));
+                    }
+                    if (config.GenreMappings["GENRENEWS"] != null) {
+                        $('#txtNewsGenre', page).val(config.GenreMappings["GENRENEWS"].join(','));
+                    }
+                    if (config.GenreMappings["GENREKIDS"] != null) {
+                        $('#txtKidsGenre', page).val(config.GenreMappings["GENREKIDS"].join(','));
+                    }
+                    if (config.GenreMappings["GENRELIVE"] != null) {
+                        $('#txtLiveGenre', page).val(config.GenreMappings["GENRELIVE"].join(','));
+                    }
+                }
+            }
+
+            function saveAndTestConfiguration(form) {
+                saveConfiguration(form);
+            }
+
+            function saveConfiguration(form) {
+                Dashboard.showLoadingMsg();
+
+                ApiClient.getPluginConfiguration(MediaPortalConfigurationPage.pluginUniqueId).then(function (config) {
+
+                    config.ApiHostName = $('#txtApiHostName', form).val();
+                    config.ApiPortNumber = $('#txtApiPortNumber', form).val();
+                    config.RequiresAuthentication = $('#chkRequiresAuthentication', form).checked();
+                    config.UserName = $('#txtUserName', form).val();
+                    config.Password = $('#txtPassword', form).val();
+                    config.ChannelByIndex = $('#chkChannelByIndex', form).checked();
+                    config.MediaInfoDelay = $('#txtMediaInfoDelay', form).val();
+                    config.EnableDirectPlay = $('#chkEnableDirectPlay', form).checked();
+                    config.LimitStreaming = $('#chkLimitStreaming', form).checked();
+                    config.EnableDirectAccess = $('#chkEnableDirectAccess', form).checked();
+                    config.RequiresPathSubstitution = $('#chkRequiresPathSubstitution', form).checked();
+                    config.LocalFilePath = $('#txtLocalFilePath', form).val();
+                    config.RemoteFilePath = $('#txtRemoteFilePath', form).val();
+                    config.PreviewThumbnailOffsetMinutes = $('#txtThumbnailOffset', form).val();
+                    config.StreamingProfileName = $('#selectProfile', form).val();
+                    config.DefaultChannelGroup = $('#selectChannelGroup', form).val();
+                    config.DefaultChannelSortOrder = $('#selectChannelSortOption', form).val();
+                    config.EnableTimerCache = $('#chkEnableTimerCache', form).checked();
+                    config.EnableFFProbe = $('#chkEnableFFProbe', form).checked();
+                    config.EnableLogging = $('#chkEnableLogging', form).checked();
+
+                    // Copy over the genre mapping fields
+                    config.GenreMappings = {
+                        "GENREMOVIE": $('#txtMovieGenre', form).val().split(","),
+                        "GENRESERIES": $('#txtSeriesGenre', form).val().split(","),
+                        "GENRESPORT": $('#txtSportsGenre', form).val().split(","),
+                        "GENRENEWS": $('#txtNewsGenre', form).val().split(","),
+                        "GENREKIDS": $('#txtKidsGenre', form).val().split(","),
+                        "GENRELIVE": $('#txtLiveGenre', form).val().split(","),
+                    };
+
+                    ApiClient.updatePluginConfiguration(MediaPortalConfigurationPage.pluginUniqueId, config).then(function () {
+
+                        // Reload the selects - this may be called by the 'test' button
+                        loadSelects(config, form);
+
+                        Dashboard.processPluginConfigurationUpdateResult();
+                    });
+
+                });
+
+                Dashboard.hideLoadingMsg();
+            }
+
+            function TestConnection() {
+                var result = "false";
+
+                fetch(ApiClient.getUrl("MediaPortalPlugin/TestConnection"), {
+                    method: "GET",
+                    headers: new Headers({
+                        "Content-Type": "application/json"
+                    })
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (jsonResponse) {
+                    result = jsonResponse;
+                    if (result === true) {
+                        $("#connectionTestResult").text("Successfully connected");
+                        $("#connectionTestResult").css({ 'color': 'green' });
+                    } else {
+                        $("#connectionTestResult").text("Unable to connect to MP, please review your connection settings before continuing");
+                        $("#connectionTestResult").css({ 'color': 'red' });
+                    };
+                    $("#connectionTestResult").show();
+                });
+                return result;
+            }
+        </script>
+    </div>
+
+</body>
+</html>
