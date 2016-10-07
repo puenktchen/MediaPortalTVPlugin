@@ -4,17 +4,16 @@
     <title>MediaPortal</title>
 </head>
 <body>
-    <div id="mediaPortalConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage mediaPortalConfigurationPage" data-require="emby-button,emby-input,emby-select,emby-checkbox">
-
+    <div id="mediaPortalConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage mediaPortalConfigurationPage" data-require="emby-button,emby-input,emby-select,emby-checkbox,emby-collapse">
         <div data-role="content">
             <div class="content-primary">
                 <form id="mediaPortalConfigurationForm">
-				
-                    <h1 id="connectionHeader">Media Portal Connection and Authentication</h1>
+
+                    <h1 id="connectionHeader">MediaPortal Connection and Authentication</h1>
                     <div class="inputContainer">
                         <input is="emby-input" id="txtApiHostName" name="txtApiHostName" label="Host name:" />
                         <div class="fieldDescription">
-                            The host name (address) of the MP Extended Service
+                            The host name (address) of MPExtended Service
                         </div>
                     </div>
                     <div class="inputContainer">
@@ -46,140 +45,152 @@
                         <p id="connectionTestResult"></p>
                     </div>
                     <br />
-					
-					<h1>Channel Options</h1>
-					<div class="selectContainer">
-                        <select is="emby-select" id="selectChannelGroup" data-mini="true" label="Channel group:"></select>
-                        <div class="fieldDescription">
-                            Select the channel group you wish to use in Emby
-                        </div>
-                    </div>
-                    <div class="selectContainer">
-                        <select is="emby-select" id="selectChannelSortOption" label="Channel sort order:"></select>
-                        <div class="fieldDescription">
-                            Select the order in which the channels should be displayed
-                        </div>
-                    </div>
-					<label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkChannelByIndex" />
-                        <span>Enable channel index (Helps with channel sorting problems)</span>
-                    </label>
-                    <br />
-					
-                    <h1>Program Options</h1>
-                    <p>List against each Emby genre below, the MediaPortal program genres that belong to it</p>
-                    <div class="inputContainer">
-                        <input is="emby-input" id="txtMovieGenre" name="txtMovieGenre" label="Movie genres:" />
-                        <div class="fieldDescription">
-                            Example: Movie,Film,TvMovie
-                        </div>
-                    </div>
-                    <div class="inputContainer">
-                        <input is="emby-input" id="txtSeriesGenre" name="txtSeriesGenre" label="Series genres:" />
-                        <div class="fieldDescription">
-                            Example: Action Series,Drama (Series),Daily Soap (limits series recordings to these genres. If unsure, leave empty.)
-                        </div>
-                    </div>
-                    <div class="inputContainer">
-                        <input is="emby-input" id="txtSportsGenre" name="txtSportsGenre" label="Sports genres:" />
-                        <div class="fieldDescription">
-                            Example: Sport,Football
-                        </div>
-                    </div>
-                    <div class="inputContainer">
-                        <input is="emby-input" id="txtNewsGenre" name="txtNewsGenre" label="News genres:" />
-                        <div class="fieldDescription">
-                            Example: News Report,Daily News
-                        </div>
-                    </div>
-                    <div class="inputContainer">
-                        <input is="emby-input" id="txtKidsGenre" name="txtKidsGenre" label="Kids genres:" />
-                        <div class="fieldDescription">
-                            Example: Cartoon,Animation
-                        </div>
-                    </div>
-                    <div class="inputContainer">
-                        <input is="emby-input" id="txtLiveGenre" name="txtLiveGenre" label="Live genres:" />
-                        <div class="fieldDescription">
-                            Example: Live Gameshow,Live Sports
-                        </div>
-                    </div>
-                    <br />
 
-                    <h1>Streaming Options</h1>
-                    <div class="selectContainer">
-                        <select is="emby-select" id="selectProfile" label="Streaming profiles:"></select>
-                        <div class="fieldDescription">
-                            Select the MPExtended profile to use for streaming (Direct is recommended)
-                        </div>
-                    </div>
-					<label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkEnableDirectPlay" />
-                        <span>Enable potential Emby Direct Playback on supported clients by probing the stream</span>
-                    </label>
-					<div class="inputContainer">
-                        <input is="emby-input" id="txtMediaInfoDelay" name="txtMediaInfoDelay" label="Stream Delay (ms):" />
-                        <div id="txtMediaInfoDelayDesc" class="fieldDescription">
-                            The delay of MPExtended to grab Mediainfo of live streams<br />(Needed for direct play; Increase for encrypted channels)
-                        </div>
-						<div id="txtFFProbeDesc" class="fieldDescription">
-                            How long should ffprobe analyze the streams for Mediainfo<br />(Needed for direct play; Increase for encrypted channels)
-                        </div>
-						<div id="txtStreamDelayDesc" class="fieldDescription">
-                            Delays returning of the stream url to Emby<br />(Normally zero; Increase for encrypted channels or if Emby does not recognize all audio and subtitles streams)
-                        </div>
-                    </div>
-                    <label class="checkboxContainer" id="chkLimitStreamingContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkLimitStreamingField" />
-                        <span>Force Emby Transcoding of streams greater than 720p</span>
-                    </label>
-                    <br />
-					
-					<h1>Recording Options</h1>
-                    <label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkEnableDirectAccess" />
-                        <span>Enable direct access of recording files</span>
-                    </label>
-                    <label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkRequiresPathSubstitution" />
-                        <span>Direct access of recording files requires pathsubstitution</span>
-                    </label>
-                    <div id="txtPathsubstitutionFields">
-                        <div class="inputContainer">
-                            <input is="emby-input" id="txtLocalFilePath" name="txtLocalFilePath" label="Local path:" />
-                            <div class="fieldDescription">
-                                The local recording folder specified in MediaPortal TVServer settings
+                    <div is="emby-collapse" title="Channel Options">
+                        <div class="collapseContent">
+                            <div class="selectContainer">
+                                <select is="emby-select" id="selectChannelGroup" data-mini="true" label="Channel group:"></select>
+                                <div class="fieldDescription">
+                                    Select the channel group you wish to use in Emby
+                                </div>
                             </div>
+                            <div class="selectContainer">
+                                <select is="emby-select" id="selectChannelSortOption" label="Channel sort order:"></select>
+                                <div class="fieldDescription">
+                                    Select the order in which the channels should be displayed
+                                </div>
+                            </div>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkChannelByIndex" />
+                                <span>Enable channel index (Helps with channel sorting problems)</span>
+                            </label>
                         </div>
-                        <div class="inputContainer">
-                            <input is="emby-input" id="txtRemoteFilePath" name="txtRemoteFilePath" label="Remote share:" />
-                            <div class="fieldDescription">
-                                The remote recording share to access MediaPortal recordings
+                    </div>
+
+                    <div is="emby-collapse" title="Program Options">
+                        <div class="collapseContent">
+                            <p>List against each Emby genre below, the MediaPortal program genres that belong to it</p>
+                            <div class="inputContainer">
+                                <input is="emby-input" id="txtMovieGenre" name="txtMovieGenre" label="Movie genres:" />
+                                <div class="fieldDescription">
+                                    Example: Movie,Film,TvMovie
+                                </div>
+                            </div>
+                            <div class="inputContainer">
+                                <input is="emby-input" id="txtSeriesGenre" name="txtSeriesGenre" label="Series genres:" />
+                                <div class="fieldDescription">
+                                    Example: Action Series,Drama (Series),Daily Soap (limits series recordings to these genres. If unsure, leave empty.)
+                                </div>
+                            </div>
+                            <div class="inputContainer">
+                                <input is="emby-input" id="txtSportsGenre" name="txtSportsGenre" label="Sports genres:" />
+                                <div class="fieldDescription">
+                                    Example: Sport,Football
+                                </div>
+                            </div>
+                            <div class="inputContainer">
+                                <input is="emby-input" id="txtNewsGenre" name="txtNewsGenre" label="News genres:" />
+                                <div class="fieldDescription">
+                                    Example: News Report,Daily News
+                                </div>
+                            </div>
+                            <div class="inputContainer">
+                                <input is="emby-input" id="txtKidsGenre" name="txtKidsGenre" label="Kids genres:" />
+                                <div class="fieldDescription">
+                                    Example: Cartoon,Animation
+                                </div>
+                            </div>
+                            <div class="inputContainer">
+                                <input is="emby-input" id="txtLiveGenre" name="txtLiveGenre" label="Live genres:" />
+                                <div class="fieldDescription">
+                                    Example: Live Gameshow,Live Sports
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="inputContainer">
-                        <input is="emby-input" id="txtThumbnailOffset" name="txtThumbnailOffset" label="Recording thumbnail offset (mins):" />
-                        <div class="fieldDescription">
-                            The number of minutes into a programme to capture the screen grab for display
+
+                    <div is="emby-collapse" title="Streaming Options">
+                        <div class="collapseContent">
+                            <div class="selectContainer">
+                                <select is="emby-select" id="selectProfile" label="Streaming profiles:"></select>
+                                <div class="fieldDescription">
+                                    Select the MPExtended profile to use for streaming (Direct is recommended)
+                                </div>
+                            </div>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableDirectPlay" />
+                                <span>Enable potential Emby Direct Playback on supported clients by probing the stream</span>
+                            </label>
+                            <div class="inputContainer">
+                                <input is="emby-input" id="txtMediaInfoDelay" name="txtMediaInfoDelay" label="Stream Delay (ms):" />
+                                <div id="txtMediaInfoDelayDesc" class="fieldDescription">
+                                    The delay of MPExtended to grab Mediainfo of live streams<br />(Needed for direct play; Increase for encrypted channels)
+                                </div>
+                                <div id="txtFFProbeDesc" class="fieldDescription">
+                                    How long should ffprobe analyze the streams for Mediainfo<br />(Needed for direct play; Increase for encrypted channels)
+                                </div>
+                                <div id="txtStreamDelayDesc" class="fieldDescription">
+                                    Delays returning of the stream url to Emby<br />(Normally zero; Increase for encrypted channels or if Emby does not recognize all audio and subtitles streams)
+                                </div>
+                            </div>
+                            <label class="checkboxContainer" id="chkLimitStreamingContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkLimitStreamingField" />
+                                <span>Force Emby Transcoding of streams greater than 720p</span>
+                            </label>
                         </div>
                     </div>
-                    <br />
-					
-					<h1>Advanced Options</h1>
-                    <label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkEnableTimerCache" />
-                        <span>Enable caching of timers (60s)</span>
-                    </label>
-					<label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkEnableFFProbe" />
-                        <span>Enable Emby ffprobe instead of MPExtended mediainfo</span>
-                    </label>
-					<label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkEnableLogging" />
-                        <span>Enable Logging</span>
-                    </label>
 
+                    <div is="emby-collapse" title="Recording Options">
+                        <div class="collapseContent">
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableDirectAccess" />
+                                <span>Enable direct access of recording files</span>
+                            </label>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkRequiresPathSubstitution" />
+                                <span>Direct access of recording files requires pathsubstitution</span>
+                            </label>
+                            <div id="txtPathsubstitutionFields">
+                                <div class="inputContainer">
+                                    <input is="emby-input" id="txtLocalFilePath" name="txtLocalFilePath" label="Local path:" />
+                                    <div class="fieldDescription">
+                                        The local recording folder specified in MediaPortal TVServer settings
+                                    </div>
+                                </div>
+                                <div class="inputContainer">
+                                    <input is="emby-input" id="txtRemoteFilePath" name="txtRemoteFilePath" label="Remote share:" />
+                                    <div class="fieldDescription">
+                                        The remote recording share to access MediaPortal recordings
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="inputContainer">
+                                <input is="emby-input" id="txtThumbnailOffset" name="txtThumbnailOffset" label="Recording thumbnail offset (mins):" />
+                                <div class="fieldDescription">
+                                    The number of minutes into a programme to capture the screen grab for display
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div is="emby-collapse" title="Advanced Options">
+                        <div class="collapseContent">
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableTimerCache" />
+                                <span>Enable caching of timers (60s)</span>
+                            </label>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableFFProbe" />
+                                <span>Enable Emby ffprobe instead of MPExtended mediainfo</span>
+                            </label>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableLogging" />
+                                <span>Enable Logging</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <br />
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
                     </div>
@@ -240,8 +251,8 @@
             $("#chkEnableFFProbe").click(function () {
                 checkEnableDirectPlay();
             });
-			
-			var MediaPortalConfigurationPage = {
+
+            var MediaPortalConfigurationPage = {
                 pluginUniqueId: "2c6a0219-7621-4b06-8a64-da3f7038b649"
             };
 
@@ -439,7 +450,7 @@
                 return result;
             }
         </script>
-    </div>
 
+    </div>
 </body>
 </html>
