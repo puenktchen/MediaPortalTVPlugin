@@ -198,12 +198,14 @@ namespace MediaBrowser.Plugins.MediaPortal
 
                 if (!timerCache.Contains("timers"))
                 {
-                    var expiration = DateTimeOffset.UtcNow.AddSeconds(60); ;
-                    var results = Task.FromResult(Plugin.TvProxy.GetSchedules(cancellationToken));
+                    Plugin.Logger.Info("Add timers to memory cache");
+                    var expiration = DateTimeOffset.UtcNow.AddSeconds(20);
+                    var results = Plugin.TvProxy.GetSchedules(cancellationToken);
 
-                    timerCache.Add("timers", results, expiration);
+                    timerCache.Add("timers", Task.FromResult(results), expiration);
                 }
 
+                Plugin.Logger.Info("Return timers from memory cache");
                 return (Task<IEnumerable<TimerInfo>>)timerCache.Get("timers", null);
             }
             else
