@@ -80,18 +80,14 @@
     <Compile Include="Entities\ChannelSortOption.cs" />
     <Compile Include="Entities\ScheduleDefaults.cs" />
     <Compile Include="Entities\SerializableDictionary.cs" />
-    <Compile Include="Helpers\FFProbeHelper.cs" />
     <Compile Include="Helpers\ExceptionHelper.cs" />
     <Compile Include="Helpers\GenreMapper.cs" />
-    <Compile Include="Helpers\TranslateMediainfoToEmby.cs" />
     <Compile Include="Services\Entities\ActiveTunerCard.cs" />
-    <Compile Include="Services\Entities\FFProbeMediaInfo.cs" />
     <Compile Include="Services\Entities\WebTranscodingInfo.cs" />
     <Compile Include="Services\Entities\WebStreamingSession.cs" />
     <Compile Include="Services\Entities\WebCardType.cs" />
     <Compile Include="Services\Entities\TunerCard.cs" />
     <Compile Include="Services\Entities\User.cs" />
-    <Compile Include="Services\Entities\WebMediaInfo.cs" />
     <Compile Include="Services\Entities\WebScheduleType.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -19,9 +19,8 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
             ApiHostName = "localhost";
             ApiPortNumber = 4322;
             StreamingProfileName = "Direct";
-            PreviewThumbnailOffsetMinutes = 5;
-            MediaInfoDelay = 1500;
-            EnableDirectPlay = true;
+            PreviewThumbnailOffsetMinutes = 10;
+            StreamDelay = 0;
             EnableTimerCache = true;
 
             // Initialise this
@@ -79,19 +78,9 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         public String StreamingProfileName { get; set; }
 
         /// <summary>
-        /// Delay reading of stream mediainfo in ms
+        /// Delay reading of the stream in ms
         /// </summary>
-        public Int32? MediaInfoDelay { get; set; }
-
-        /// <summary>
-        /// Enable direct play of streams
-        /// </summary>
-        public bool EnableDirectPlay { get; set; }
-
-        /// <summary>
-        /// Limit direct play up to 720p
-        /// </summary>
-        public bool LimitStreaming { get; set; }
+        public Int32? StreamDelay { get; set; }
 
         /// <summary>
         /// Enable direct access to recordings
@@ -122,11 +111,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         /// Enable one time schedules caching
         /// </summary>
         public bool EnableTimerCache { get; set; }
-
-        /// <summary>
-        /// Enable ffrobe instead of mediainfo
-        /// </summary>
-        public bool EnableFFProbe{ get; set; }
 
         /// <summary>
         /// Enable additional logging
@@ -162,9 +146,9 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
                 }
             }
 
-            if (!MediaInfoDelay.HasValue)
+            if (!StreamDelay.HasValue)
             {
-                MediaInfoDelay = 1500;
+                StreamDelay = 0;
             }
 
             if (RequiresPathSubstitution)

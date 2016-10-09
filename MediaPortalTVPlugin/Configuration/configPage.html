@@ -117,26 +117,12 @@
                                     Select the MPExtended profile to use for streaming (Direct is recommended)
                                 </div>
                             </div>
-                            <label class="checkboxContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkEnableDirectPlay" />
-                                <span>Enable potential Emby Direct Playback on supported clients by probing the stream</span>
-                            </label>
                             <div class="inputContainer">
-                                <input is="emby-input" id="txtMediaInfoDelay" name="txtMediaInfoDelay" label="Stream Delay (ms):" />
-                                <div id="txtMediaInfoDelayDesc" class="fieldDescription">
-                                    The delay of MPExtended to grab Mediainfo of live streams<br />(Needed for direct play; Increase for encrypted channels)
-                                </div>
-                                <div id="txtFFProbeDesc" class="fieldDescription">
-                                    How long should ffprobe analyze the streams for Mediainfo<br />(Needed for direct play; Increase for encrypted channels)
-                                </div>
+                                <input is="emby-input" id="txtStreamDelay" name="txtStreamDelay" label="Stream Delay (ms):" />
                                 <div id="txtStreamDelayDesc" class="fieldDescription">
                                     Delays returning of the stream url to Emby<br />(Normally zero; Increase for encrypted channels or if Emby does not recognize all audio and subtitles streams)
                                 </div>
                             </div>
-                            <label class="checkboxContainer" id="chkLimitStreamingContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkLimitStreamingField" />
-                                <span>Force Emby Transcoding of streams greater than 720p</span>
-                            </label>
                         </div>
                     </div>
 
@@ -180,10 +166,6 @@
                                 <span>Enable caching of timers</span>
                             </label>
                             <label class="checkboxContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkEnableFFProbe" />
-                                <span>Enable Emby ffprobe instead of MPExtended mediainfo</span>
-                            </label>
-                            <label class="checkboxContainer">
                                 <input is="emby-checkbox" type="checkbox" id="chkEnableLogging" />
                                 <span>Enable Logging</span>
                             </label>
@@ -213,28 +195,6 @@
                 };
             };
 
-            $("#chkEnableDirectPlay").click(function () {
-                checkEnableDirectPlay();
-            });
-
-            function checkEnableDirectPlay() {
-                if ($("#chkEnableDirectPlay").prop('checked') && $("#chkEnableFFProbe").prop('checked')) {
-                    $("#chkLimitStreamingContainer").show();
-                    $("#txtMediaInfoDelayDesc").hide();
-                    $("#txtFFProbeDesc").show();
-                    $("#txtStreamDelayDesc").hide();
-                } else if ($("#chkEnableDirectPlay").prop('checked') && $("#chkEnableFFProbe").prop('checked', false)) {
-                    $("#chkLimitStreamingContainer").show();
-                    $("#txtMediaInfoDelayDesc").show();
-                    $("#txtFFProbeDesc").hide();
-                    $("#txtStreamDelayDesc").hide();
-                } else {
-                    $("#chkLimitStreamingContainer").hide();
-                    $("#txtMediaInfoDelayDesc").hide();
-                    $("#txtFFProbeDesc").hide();
-                    $("#txtStreamDelayDesc").show();
-                };
-            };
 
             $("#chkRequiresPathSubstitution").click(function () {
                 checkRequiresPathSubstitution();
@@ -248,9 +208,6 @@
                 };
             };
 
-            $("#chkEnableFFProbe").click(function () {
-                checkEnableDirectPlay();
-            });
 
             var MediaPortalConfigurationPage = {
                 pluginUniqueId: "2c6a0219-7621-4b06-8a64-da3f7038b649"
@@ -287,20 +244,16 @@
                     $('#txtUserName', page).val(config.UserName);
                     $('#txtPassword', page).val(config.Password);
                     $('#chkChannelByIndex', page).checked(config.ChannelByIndex || false).checkboxradio("refresh");
-                    $('#txtMediaInfoDelay', page).val(config.MediaInfoDelay);
-                    $('#chkEnableDirectPlay', page).checked(config.EnableDirectPlay || false).checkboxradio("refresh");
-                    $('#chkLimitStreaming', page).checked(config.LimitStreaming || false).checkboxradio("refresh");
+                    $('#txtStreamDelay', page).val(config.StreamDelay);
                     $('#chkEnableDirectAccess', page).checked(config.EnableDirectAccess || false).checkboxradio("refresh");
                     $('#chkRequiresPathSubstitution', page).checked(config.RequiresPathSubstitution || false).checkboxradio("refresh");
                     $('#txtLocalFilePath', page).val(config.LocalFilePath);
                     $('#txtRemoteFilePath', page).val(config.RemoteFilePath);
                     $('#txtThumbnailOffset', page).val(config.PreviewThumbnailOffsetMinutes);
                     $('#chkEnableTimerCache', page).checked(config.EnableTimerCache || false).checkboxradio("refresh");
-                    $('#chkEnableFFProbe', page).checked(config.EnableFFProbe || false).checkboxradio("refresh");
                     $('#chkEnableLogging', page).checked(config.EnableLogging || false).checkboxradio("refresh");
 
                     checkRequiresAuthentication()
-                    checkEnableDirectPlay()
                     checkRequiresPathSubstitution();
                     loadSelects(config, page);
                     loadGenres(config, page);
@@ -387,20 +340,17 @@
                     config.RequiresAuthentication = $('#chkRequiresAuthentication', form).checked();
                     config.UserName = $('#txtUserName', form).val();
                     config.Password = $('#txtPassword', form).val();
+                    config.DefaultChannelGroup = $('#selectChannelGroup', form).val();
+                    config.DefaultChannelSortOrder = $('#selectChannelSortOption', form).val();
                     config.ChannelByIndex = $('#chkChannelByIndex', form).checked();
-                    config.MediaInfoDelay = $('#txtMediaInfoDelay', form).val();
-                    config.EnableDirectPlay = $('#chkEnableDirectPlay', form).checked();
-                    config.LimitStreaming = $('#chkLimitStreaming', form).checked();
+                    config.StreamingProfileName = $('#selectProfile', form).val();
+                    config.StreamDelay = $('#txtStreamDelay', form).val();
                     config.EnableDirectAccess = $('#chkEnableDirectAccess', form).checked();
                     config.RequiresPathSubstitution = $('#chkRequiresPathSubstitution', form).checked();
                     config.LocalFilePath = $('#txtLocalFilePath', form).val();
                     config.RemoteFilePath = $('#txtRemoteFilePath', form).val();
                     config.PreviewThumbnailOffsetMinutes = $('#txtThumbnailOffset', form).val();
-                    config.StreamingProfileName = $('#selectProfile', form).val();
-                    config.DefaultChannelGroup = $('#selectChannelGroup', form).val();
-                    config.DefaultChannelSortOrder = $('#selectChannelSortOption', form).val();
                     config.EnableTimerCache = $('#chkEnableTimerCache', form).checked();
-                    config.EnableFFProbe = $('#chkEnableFFProbe', form).checked();
                     config.EnableLogging = $('#chkEnableLogging', form).checked();
 
                     // Copy over the genre mapping fields

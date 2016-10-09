@@ -1,7 +1,6 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
-using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Plugins;
@@ -34,7 +33,7 @@ namespace MediaBrowser.Plugins.MediaPortal
         /// <param name="logger">The logger.</param>
         public Plugin(
             IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IHttpClient httpClient, 
-            IJsonSerializer jsonSerializer, INetworkManager networkManager, IMediaEncoder mediaEncoder, ILogger logger)
+            IJsonSerializer jsonSerializer, INetworkManager networkManager, ILogger logger)
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
@@ -42,7 +41,7 @@ namespace MediaBrowser.Plugins.MediaPortal
             Logger = new PluginLogger(logger);
 
             // Create our shared service proxies
-            StreamingProxy = new StreamingServiceProxy(httpClient, jsonSerializer, networkManager, mediaEncoder);
+            StreamingProxy = new StreamingServiceProxy(httpClient, jsonSerializer, networkManager);
             TvProxy = new TvServiceProxy(httpClient, jsonSerializer, StreamingProxy);
         }
 
