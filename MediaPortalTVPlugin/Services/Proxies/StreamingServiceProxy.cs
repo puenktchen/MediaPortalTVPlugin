@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -131,52 +132,20 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             Plugin.Logger.Info("Streaming setting RequiresAuthentication: {0}", Configuration.RequiresAuthentication);
             Plugin.Logger.Info("Streaming setting StreamingProfileName: {0}", Configuration.StreamingProfileName);
             Plugin.Logger.Info("Streaming setting StreamDelay: {0}", Configuration.StreamDelay);
-            
-            int mpextendedApiVersion = GetStatusInfo(cancellationToken).ApiVersion;
 
             var configuration = Plugin.Instance.Configuration;
             var profile = GetTranscoderProfile(cancellationToken, Configuration.StreamingProfileName);
             var identifier = HttpUtility.UrlEncode(String.Format("{0}-{1}-{2:yyyyMMddHHmmss}", webMediaType, itemId, DateTime.UtcNow));
-            var url = "streamingURL";
 
-            var isStreamInitialised = GetFromService<WebBoolResult>(cancellationToken,
-                        "InitStream?type={0}&provider={1}&itemId={2}&identifier={3}&idleTimeout={4}&clientDescription={5}",
+            var url = GetUrl(_streamingEndpoint, "DoStream?type={0}&provider={1}&itemId={2}&clientDescription={3}&profileName={4}&startPosition={5}&idleTimeout={6}&identifier={7}",
                         webMediaType,
                         STREAM_TV_RECORDING_PROVIDER,
                         itemId,
                         identifier,
+                        profile.Name,
+                        (Int32)startPosition.TotalSeconds,
                         STREAM_TIMEOUT_DIRECT,
-                        identifier).Result;
-
-            if (!isStreamInitialised)
-            {
-                throw new Exception(String.Format("Could not initialise the stream. Identifier={0}", identifier));
-            }
-
-            if (mpextendedApiVersion < 6 || configuration.RequiresAuthentication || !String.Equals(profile.Name, "Direct", StringComparison.OrdinalIgnoreCase))
-            {
-                url = GetFromService<WebStringResult>(cancellationToken, "StartStream?identifier={0}&profileName={1}&startPosition={2}",
-                    identifier,
-                    profile.Name,
-                    (Int32)startPosition.TotalSeconds).Result; 
-            }
-            else
-            {
-                url = GetFromService<WebStringResult>(cancellationToken, "StartStream?identifier={0}&profileName={1}&startPosition={2}",
-                    identifier,
-                    profile.Name,
-                    (Int32)startPosition.TotalSeconds).Result;
-
-                url = GetUrl(_streamingEndpoint, "DoStream?type={0}&provider={1}&itemId={2}&clientDescription={3}&profileName={4}&startPosition={5}&idleTimeout={6}&identifier={7}",
-                    webMediaType,
-                    STREAM_TV_RECORDING_PROVIDER,
-                    itemId,
-                    identifier,
-                    profile.Name,
-                    (Int32)startPosition.TotalSeconds,
-                    STREAM_TIMEOUT_DIRECT,
-                    identifier);
-            }
+                        identifier);
 
             var streamingDetails = new StreamingDetails()
             {
@@ -189,6 +158,15 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 }
             };
 
+            if (configuration.RequiresAuthentication)
+            {
+                string authInfo = String.Format("{0}:{1}", configuration.UserName, configuration.Password);
+                authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
+
+                streamingDetails.SourceInfo.SupportsDirectPlay = false;
+                streamingDetails.SourceInfo.RequiredHttpHeaders = new Dictionary<string, string> { { "Authentication", "Basic " + authInfo } };
+            }
+            
             System.Threading.Thread.Sleep(Plugin.Instance.Configuration.StreamDelay.Value);
             
             return streamingDetails;
