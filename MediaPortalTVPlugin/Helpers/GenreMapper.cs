@@ -93,27 +93,30 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
         public void PopulateProgramGenres(ProgramInfo program)
         {
             // Check there is a program and genres to map
-            if (program != null && program.Genres != null && program.Genres.Count > 0)
+            if (program != null)
             {
-                program.IsMovie = _movieGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                program.IsSeries = _seriesGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)))
+                if (program.Genres != null && program.Genres.Count > 0)
+                {
+                    program.IsMovie = _movieGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    program.IsSeries = _seriesGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)))
+                    {
+                        program.IsSeries = true;
+                        program.IsPremiere = false;
+                        program.IsRepeat = true;
+                    }
+                    program.IsSports = _sportGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    program.IsNews = _newsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    program.IsKids = _kidsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    program.IsLive = _liveGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                }
+
+                if (program.Genres == null || (!program.IsMovie && !program.IsSeries && !program.IsSports && !program.IsNews && !program.IsKids && !program.IsLive))
                 {
                     program.IsSeries = true;
                     program.IsPremiere = false;
                     program.IsRepeat = true;
                 }
-                program.IsSports = _sportGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                program.IsNews = _newsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                program.IsKids = _kidsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                program.IsLive = _liveGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-            }
-
-            if (program != null && program.Genres == null)
-            {
-                program.IsSeries = true;
-                program.IsPremiere = false;
-                program.IsRepeat = true;
             }
         }
     }

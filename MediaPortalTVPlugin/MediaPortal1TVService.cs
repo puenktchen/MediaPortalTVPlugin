@@ -26,7 +26,7 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public string HomePageUrl
         {
-            get { return "https://github.com/puenktchen/MediaPortalTVPlugin/releases"; }
+            get { return "https://github.com/puenktchen/MediaPortalTVPlugin"; }
         }
 
         public string Name
@@ -180,7 +180,11 @@ namespace MediaBrowser.Plugins.MediaPortal
                 IsPrePaddingRequired = scheduleDefaults.PreRecordInterval.Ticks > 0,
                 PostPaddingSeconds = (Int32)scheduleDefaults.PostRecordInterval.TotalSeconds,
                 PrePaddingSeconds = (Int32)scheduleDefaults.PreRecordInterval.TotalSeconds,
+                RecordNewOnly = true,
+                RecordAnyChannel = false,
+                RecordAnyTime = false,
                 Days = scheduleDayOfWeek,
+                SkipEpisodesInLibrary = false,
             });
         }
 
@@ -223,11 +227,6 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            return ChangeTimerAsync(info, cancellationToken);
-        }
-
-        private Task ChangeTimerAsync(TimerInfo info, CancellationToken cancellationToken)
-        {
             refreshTimers = true;
             Plugin.TvProxy.ChangeSchedule(cancellationToken, info);
             return Task.Delay(0, cancellationToken);
@@ -254,14 +253,9 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            return ChangeSeriesTimerAsync(info, cancellationToken);
-        }
-
-        public Task ChangeSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
-        {
             refreshTimers = true;
             Plugin.TvProxy.ChangeSeriesSchedule(cancellationToken, info);
-            return Task.Delay(0, cancellationToken);
+            return Task.Delay(0, cancellationToken);;
         }
 
         public Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)

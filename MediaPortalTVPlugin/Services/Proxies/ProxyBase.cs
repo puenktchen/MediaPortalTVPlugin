@@ -76,8 +76,20 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             {
                 Configuration.ApiHostName = LocalIPAddress().ToString();
             }
+
             var baseUrl = String.Format("http://{0}:{1}/MPExtended/{2}/", Configuration.ApiHostName, Configuration.ApiPortNumber, endPointSuffixOverride);
             return String.Concat(baseUrl, String.Format(action, args));
+
+            //if (Configuration.RequiresAuthentication)
+            //{
+            //    var baseUrl = String.Format("http://{0}:{1}@{2}:{3}/MPExtended/{4}/", Configuration.UserName, Configuration.Password, Configuration.ApiHostName, Configuration.ApiPortNumber, endPointSuffixOverride);
+            //    return String.Concat(baseUrl, String.Format(action, args));
+            //}
+            //else
+            //{
+            //    var baseUrl = String.Format("http://{0}:{1}/MPExtended/{2}/", Configuration.ApiHostName, Configuration.ApiPortNumber, endPointSuffixOverride);
+            //    return String.Concat(baseUrl, String.Format(action, args));
+            //}        
         }
 
         /// <summary>

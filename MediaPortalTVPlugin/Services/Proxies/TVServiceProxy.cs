@@ -177,23 +177,51 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     EpisodeTitle = r.EpisodeName,
                     Id = r.Id,
                     TimerId = r.ScheduleId.ToString(CultureInfo.InvariantCulture),
-                    IsSeries = (!String.IsNullOrEmpty(r.EpisodeNum)) ? true : false,
-                    ProgramId = r.ScheduleId.ToString(CultureInfo.InvariantCulture),
                     ChannelId = r.ChannelId.ToString(CultureInfo.InvariantCulture),
                     StartDate = r.StartTime,
                     EndDate = r.EndTime,
                     Overview = r.Description,
                     Genres = new List<String>(),
                     Status = (r.IsRecording) ? RecordingStatus.InProgress : RecordingStatus.Completed,
-                    ImageUrl = _wssProxy.GetRecordingImageUrl(r.Id),
+                    HasImage = false,
                 };
 
-                if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution && !r.IsRecording)
+                if (!String.IsNullOrEmpty(r.EpisodeNum))
+                {
+                    int EpisodeNumber;
+                    int SeasonNumber;
+
+                    recording.IsSeries = true;
+                    recording.ShowId = r.Title;
+                    
+                    if (String.IsNullOrEmpty(r.SeriesNum))
+                    {
+                        Int32.TryParse((Regex.Match(r.EpisodeNum, @"\d+").Value), out EpisodeNumber);
+                        recording.EpisodeTitle = String.Format("E{0} - {1}", EpisodeNumber, r.EpisodeName);
+                    }
+
+                    if (!String.IsNullOrEmpty(r.SeriesNum))
+                    {
+                        Int32.TryParse((Regex.Match(r.SeriesNum, @"\d+").Value), out SeasonNumber);
+                        Int32.TryParse((Regex.Match(r.EpisodeNum, @"\d+").Value), out EpisodeNumber);
+                        recording.EpisodeTitle = String.Format("S{0}, E{1} - {2}", SeasonNumber, EpisodeNumber, r.EpisodeName);
+                    }  
+                }
+
+                if (!r.IsRecording)
+                {
+                    recording.HasImage = true;
+                    recording.ImageUrl = _wssProxy.GetRecordingImageUrl(r.Id);
+                }
+
+                //if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution && !r.IsRecording)
+                if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution)
                 {
                     recording.Path = r.FileName;
                 }
 
-                if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution && !r.IsRecording)
+                //if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution && !r.IsRecording)
+                if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution)
                 {
                     recording.Path = r.FileName.Replace(localpath, remotepath);
                 }
@@ -248,7 +276,9 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 timerInfo.IsPostPaddingRequired = (schedule.PostRecordInterval > 0);
                 timerInfo.PrePaddingSeconds = schedule.PreRecordInterval * 60;
                 timerInfo.PostPaddingSeconds = schedule.PostRecordInterval * 60;
-                timerInfo.Status = ((schedule.StartTime < DateTime.UtcNow) && (DateTime.UtcNow < schedule.EndTime)) ? RecordingStatus.InProgress : RecordingStatus.New;
+                timerInfo.Status = (((schedule.StartTime - TimeSpan.FromMinutes(schedule.PreRecordInterval) < DateTime.UtcNow)))
+                                   && (DateTime.UtcNow < (schedule.EndTime + TimeSpan.FromMinutes(schedule.PostRecordInterval)))
+                                   ? RecordingStatus.InProgress : RecordingStatus.New;
 
                 var programResponse = GetFromService<List<Program>>(cancellationToken, "SearchProgramsDetailed?searchTerm={0}", schedule.Title);
                 var program = programResponse.Where(p => (p.StartTime == schedule.StartTime && p.ChannelId == schedule.ChannelId)).FirstOrDefault();
@@ -276,6 +306,8 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                         Int32.TryParse((Regex.Match(program.SeriesNum, @"\d+").Value), out snumber);
                         timerInfo.SeasonNumber = snumber;
                     }
+
+                    Plugin.Logger.Info("One time schedule: \"{0}\"; Channel: {1}; Start Time: {2}; End Time: {3}; Status: {4}", schedule.Title, schedule.ChannelId, schedule.StartTime, schedule.EndTime, timerInfo.Status.ToString());
                 }
                 else
                 {
@@ -325,6 +357,8 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                         Int32.TryParse((Regex.Match(program.SeriesNum, @"\d+").Value), out snumber);
                         timerInfo.SeasonNumber = snumber;
                     }
+
+                    Plugin.Logger.Info("Seriespart schedule: \"{0}\"; Channel: {1}; Start Time: {2}; End Time: {3}; Status: {4}", program.Title, program.ChannelId, program.StartTime, program.EndTime, timerInfo.Status.ToString());
 
                     schedules.Add(timerInfo);
                 };
@@ -615,15 +649,25 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         {
             try
             {
-                var cancelresponse = GetFromService<WebBoolResult>(cancellationToken, "CancelSchedule?programId={0}", scheduleId);
-                if (!cancelresponse.Result)
+                var schedule = GetSchedule(cancellationToken, scheduleId);
+                if (schedule != null)
                 {
-                    var deleteresponse = GetFromService<WebBoolResult>(cancellationToken, "DeleteSchedule?scheduleId={0}", scheduleId);
-                    if (!deleteresponse.Result)
+                    if (((schedule.StartTime - TimeSpan.FromMinutes(schedule.PreRecordInterval)) < DateTime.UtcNow)
+                        && (DateTime.UtcNow < (schedule.EndTime + TimeSpan.FromMinutes(schedule.PostRecordInterval)))
+                        && (schedule.ScheduleType == 0))
                     {
-                        throw new LiveTvConflictException();
+                        string scheduledProgram = GetFromService<List<ScheduledRecording>>(cancellationToken, "GetScheduledRecordingsForToday").Where(s => s.ScheduleId == scheduleId).Select(s => s.ProgramId).FirstOrDefault().ToString();
+                        var cancelledProgram = GetFromService<WebBoolResult>(cancellationToken, "CancelSchedule?programId={0}", scheduledProgram);
+                    }
+                    else
+                    {
+                        var deleteResponse = GetFromService<WebBoolResult>(cancellationToken, "DeleteSchedule?scheduleId={0}", scheduleId);
                     }
                 }
+                else
+                {
+                    var cancelResponse = GetFromService<WebBoolResult>(cancellationToken, "CancelSchedule?programId={0}", scheduleId);
+                } 
             }
             catch (AggregateException ex)
             {
@@ -671,23 +715,23 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
 
         public ScheduleDefaults GetScheduleDefaults(CancellationToken cancellationToken)
         {
-            Int32 preRecordSecs;
-            Int32 postRecordSecs;
+            Int32 preRecordMinutes;
+            Int32 postRecordMinutes;
 
-            if (!Int32.TryParse(ReadSettingFromDatabase(cancellationToken, "preRecordInterval"), out preRecordSecs))
+            if (!Int32.TryParse(ReadSettingFromDatabase(cancellationToken, "preRecordInterval"), out preRecordMinutes))
             {
                 Plugin.Logger.Warn("Unable to read the setting 'preRecordInterval' from MP");
             }
 
-            if (!Int32.TryParse(ReadSettingFromDatabase(cancellationToken, "postRecordInterval"), out postRecordSecs))
+            if (!Int32.TryParse(ReadSettingFromDatabase(cancellationToken, "postRecordInterval"), out postRecordMinutes))
             {
                 Plugin.Logger.Warn("Unable to read the setting 'postRecordInterval' from MP");
             }
 
             return new ScheduleDefaults()
             {
-                PreRecordInterval = TimeSpan.FromMinutes(preRecordSecs),
-                PostRecordInterval = TimeSpan.FromMinutes(postRecordSecs),
+                PreRecordInterval = TimeSpan.FromMinutes(preRecordMinutes),
+                PostRecordInterval = TimeSpan.FromMinutes(postRecordMinutes),
             };
         }
 
