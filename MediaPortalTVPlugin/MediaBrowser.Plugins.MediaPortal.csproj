@@ -52,10 +52,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceStack.Interfaces, Version=4.0.0.0, Culture=neutral, PublicKeyToken=e06fbc6124f57c43, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Emby-dev\MediaBrowser.Controller\bin\Debug\ServiceStack.Interfaces.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -75,7 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\PluginConfiguration.cs" />
-    <Compile Include="Configuration\MediaPortalConfigurationPage.cs" />
     <Compile Include="Entities\ChannelSorting.cs" />
     <Compile Include="Entities\ChannelSortOption.cs" />
     <Compile Include="Entities\ScheduleDefaults.cs" />
@@ -83,6 +78,7 @@
     <Compile Include="Helpers\ExceptionHelper.cs" />
     <Compile Include="Helpers\GenreMapper.cs" />
     <Compile Include="Services\Entities\ActiveTunerCard.cs" />
+    <Compile Include="Services\Entities\ScheduledRecording.cs" />
     <Compile Include="Services\Entities\WebTranscodingInfo.cs" />
     <Compile Include="Services\Entities\WebStreamingSession.cs" />
     <Compile Include="Services\Entities\WebCardType.cs" />

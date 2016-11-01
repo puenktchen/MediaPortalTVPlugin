@@ -1,4 +1,6 @@
-﻿using MediaBrowser.Common.Configuration;
+﻿using System.Collections.Generic;
+
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Entities;
@@ -15,7 +17,7 @@ namespace MediaBrowser.Plugins.MediaPortal
     /// <summary>
     /// Class Plugin
     /// </summary>
-    public class Plugin : BasePlugin<PluginConfiguration>
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
         public static TvServiceProxy TvProxy { get; private set; }
         public static StreamingServiceProxy StreamingProxy { get; private set; }
@@ -51,7 +53,7 @@ namespace MediaBrowser.Plugins.MediaPortal
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Media Portal TV Plugin"; }
+            get { return "MediaPortal TV Plugin"; }
         }
 
         /// <summary>
@@ -62,7 +64,7 @@ namespace MediaBrowser.Plugins.MediaPortal
         {
             get
             {
-                return "Media Portal TV Plugin to enable Live TV streaming and scheduling.";
+                return "MediaPortal TV Plugin to enable Live TV streaming and scheduling.";
             }
         }
 
@@ -90,5 +92,16 @@ namespace MediaBrowser.Plugins.MediaPortal
             ServerEntryPoint.Instance.OnConfigurationUpdated(oldConfig, (PluginConfiguration)configuration);
         }
 
+        public IEnumerable<PluginPageInfo> GetPages()
+        {  
+            return new[]  
+            {  
+                new PluginPageInfo  
+                {  
+                    Name = "MediaPortal",  
+                    EmbeddedResourcePath = "MediaBrowser.Plugins.MediaPortal.Configuration.configPage.html"  
+                }  
+            };  
+        }  
     }
 }

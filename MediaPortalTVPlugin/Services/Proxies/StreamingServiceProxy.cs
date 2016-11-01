@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
 
 using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Channels;
 using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.MediaPortal.Helpers;
 using MediaBrowser.Plugins.MediaPortal.Services.Entities;
 
 namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies

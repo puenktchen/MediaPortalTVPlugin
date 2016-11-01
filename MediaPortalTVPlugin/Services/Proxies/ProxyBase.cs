@@ -6,12 +6,10 @@ using System.Text;
 using System.Threading;
 
 using MediaBrowser.Common.Net;
-using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.MediaPortal.Configuration;
 using MediaBrowser.Plugins.MediaPortal.Interfaces;
 using MediaBrowser.Plugins.MediaPortal.Services.Exceptions;
-using System.Web;
 
 namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
 {

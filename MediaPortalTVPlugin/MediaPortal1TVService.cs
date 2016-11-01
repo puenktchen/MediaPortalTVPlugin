@@ -7,7 +7,6 @@ using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 
-using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Dto;

@@ -1,5 +1,4 @@
-﻿
-namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
+﻿namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
 {
     public enum WebCardType
     {

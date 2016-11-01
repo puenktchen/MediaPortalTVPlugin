@@ -1,5 +1,5 @@
 ﻿using System;
-using MediaBrowser.Controller.Channels;
+
 using MediaBrowser.Model.Dto;
 
 namespace MediaBrowser.Plugins.MediaPortal.Services.Entities

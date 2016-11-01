@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
+
 using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Common.Security;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Tasks;
 using MediaBrowser.Plugins.MediaPortal.Configuration;
 using MediaBrowser.Plugins.MediaPortal.Helpers;
 
