@@ -8,7 +8,7 @@ using MediaBrowser.Plugins.MediaPortal.Configuration;
 namespace MediaBrowser.Plugins.MediaPortal.Helpers
 {
     /// <summary>
-    /// Provides methods to map configure genres to MB programs
+    /// Provides methods to map MediaPortal genres to Emby categories
     /// </summary>
     public class GenreMapper
     {
@@ -116,6 +116,31 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
                     program.IsSeries = true;
                     program.IsPremiere = false;
                     program.IsRepeat = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Populates the recording genres.
+        /// </summary>
+        /// <param name="recording">The recording.</param>
+        public void PopulateRecordingGenres(RecordingInfo recording)
+        {
+            // Check there is a recording and genres to map
+            if (recording != null)
+            {
+                if (recording.Genres != null && recording.Genres.Count > 0)
+                {
+                    recording.IsMovie = _movieGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    recording.IsSeries = _seriesGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)))
+                    {
+                        recording.IsSeries = true;
+                    }
+                    recording.IsSports = _sportGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    recording.IsNews = _newsGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    recording.IsKids = _kidsGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    recording.IsLive = _liveGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
                 }
             }
         }

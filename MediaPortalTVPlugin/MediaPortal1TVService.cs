@@ -270,6 +270,7 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
+            //Plugin.Logger.Info("channelId: {0}, streamId: {1}", channelId, streamId);
             _currentStreamDetails = Plugin.StreamingProxy.GetLiveTvStream(cancellationToken, channelId);
             return Task.FromResult(_currentStreamDetails.SourceInfo);
         }
@@ -281,6 +282,7 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public Task<MediaSourceInfo> GetRecordingStream(string recordingId, string streamId, CancellationToken cancellationToken)
         {
+            //Plugin.Logger.Info("recordingId: {0}, streamId: {1}", recordingId, streamId);
             _currentStreamDetails = Plugin.StreamingProxy.GetRecordingStream(cancellationToken, recordingId, TimeSpan.Zero);
             return Task.FromResult(_currentStreamDetails.SourceInfo);
         }

@@ -166,6 +166,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             var configuration = Plugin.Instance.Configuration;
             var localpath = String.Format("{0}", configuration.LocalFilePath);
             var remotepath = String.Format("{0}", configuration.RemoteFilePath);
+            var genreMapper = new GenreMapper(Plugin.Instance.Configuration);
 
             var schedules = GetFromService<List<Schedule>>(cancellationToken, "GetSchedules");
             var recordings = GetFromService<List<Recording>>(cancellationToken, "GetRecordings").Select(r =>
@@ -175,6 +176,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     Name = r.Title,
                     EpisodeTitle = r.EpisodeName,
                     Id = r.Id,
+                    ShowId = r.Title,
                     TimerId = r.ScheduleId.ToString(CultureInfo.InvariantCulture),
                     ChannelId = r.ChannelId.ToString(CultureInfo.InvariantCulture),
                     StartDate = r.StartTime,
@@ -190,9 +192,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     int EpisodeNumber;
                     int SeasonNumber;
 
-                    recording.IsSeries = true;
-                    recording.ShowId = r.Title;
-                    
                     if (String.IsNullOrEmpty(r.SeriesNum))
                     {
                         Int32.TryParse((Regex.Match(r.EpisodeNum, @"\d+").Value), out EpisodeNumber);
@@ -203,7 +202,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     {
                         Int32.TryParse((Regex.Match(r.SeriesNum, @"\d+").Value), out SeasonNumber);
                         Int32.TryParse((Regex.Match(r.EpisodeNum, @"\d+").Value), out EpisodeNumber);
-                        recording.EpisodeTitle = String.Format("S{0}, E{1} - {2}", SeasonNumber, EpisodeNumber, r.EpisodeName);
+                        recording.EpisodeTitle = String.Format("S{0},E{1} - {2}", SeasonNumber, EpisodeNumber, r.EpisodeName);
                     }  
                 }
 
@@ -213,31 +212,34 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     recording.ImageUrl = _wssProxy.GetRecordingImageUrl(r.Id);
                 }
 
-                //if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution && !r.IsRecording)
-                if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution)
+                if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution && !r.IsRecording)
+                //if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution)
                 {
                     recording.Path = r.FileName;
                 }
 
-                //if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution && !r.IsRecording)
-                if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution)
+                if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution && !r.IsRecording)
+                //if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution)
                 {
                     recording.Path = r.FileName.Replace(localpath, remotepath);
                 }
 
+                //recording.IsSeries = true; //is set by genreMapper
                 if (!String.IsNullOrEmpty(r.Genre))
                 {
                     recording.Genres.Add(r.Genre);
+                    genreMapper.PopulateRecordingGenres(recording);
                 }
 
                 var series = schedules.Where(s => (s.ScheduleType > 0 && s.Title == r.Title)).FirstOrDefault();
                 if (series != null)
                 {
                     recording.SeriesTimerId = series.Id.ToString(CultureInfo.InvariantCulture);
+                    Plugin.Logger.Info("Found recording \"{0} - {1}\"; Id: {2}", r.Title, r.EpisodeName, recording.Id);
                 }
                 else
                 {
-                    Plugin.Logger.Info("The recording \"{0} - {1}\" does not match any series schedule", r.Title, r.EpisodeName);
+                    Plugin.Logger.Info("Found recording \"{0} - {1}\"; Id: {2} without any matching series schedule", r.Title, r.EpisodeName, recording.Id);
                 }
 
                 return recording;
