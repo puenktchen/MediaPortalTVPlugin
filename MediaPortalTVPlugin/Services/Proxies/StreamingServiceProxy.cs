@@ -206,7 +206,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// <returns></returns>
         public String GetChannelLogoUrl(int channelId)
         {
-            return GetUrl(_streamingEndpoint, "GetArtworkResized?id={0}&artworktype={1}&offset=0&mediatype={2}&maxWidth=160&maxHeight=160",
+            return GetUrl(_streamingEndpoint, "GetArtwork?id={0}&artworktype={1}&offset=0&mediatype={2}",
                     channelId, (Int32)WebFileType.Logo, (Int32)WebMediaType.TV);
         }
     }

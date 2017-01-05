@@ -127,7 +127,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     EndDate = p.EndTime,
                     Overview = p.Description,
                     Genres = new List<String>(),
-                    HasImage = false,
+                    ImageUrl = _wssProxy.GetChannelLogoUrl(Int32.Parse(channelId)),
                 };
 
                 if (!String.IsNullOrEmpty(p.EpisodeNum))
@@ -213,13 +213,11 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 }
 
                 if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution && !r.IsRecording)
-                //if (configuration.EnableDirectAccess && !configuration.RequiresPathSubstitution)
                 {
                     recording.Path = r.FileName;
                 }
 
                 if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution && !r.IsRecording)
-                //if (configuration.EnableDirectAccess && configuration.RequiresPathSubstitution)
                 {
                     recording.Path = r.FileName.Replace(localpath, remotepath);
                 }
