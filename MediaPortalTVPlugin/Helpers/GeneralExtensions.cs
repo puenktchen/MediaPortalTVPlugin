@@ -44,58 +44,131 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
 
         public static WebScheduleType ToScheduleType(this SeriesTimerInfo info)
         {
-            /// Once = 0
-            if (!info.RecordAnyTime && !info.RecordAnyChannel && info.Days.Count == 0)
-            {
-                return WebScheduleType.Once;
-            }
+            ///// Once = 0
+            //if (!info.RecordAnyTime && !info.RecordAnyChannel && info.Days.Count == 0)
+            //{
+            //    return WebScheduleType.Once;
+            //}
+
+            ///// Daily = 1
+            //else if (!info.RecordAnyTime && !info.RecordAnyChannel && info.Days.IsDaily())
+            //{
+            //    return WebScheduleType.Daily;
+            //}
+
+            ///// Weekly = 2
+            //else if (!info.RecordAnyTime && !info.RecordAnyChannel && info.Days.Count == 1)
+            //{
+            //    return WebScheduleType.Weekly;
+            //}
+
+            ///// WeeklyEveryTimeOnThisChannel = 7
+            //else if (info.RecordAnyTime && !info.RecordAnyChannel && info.Days.Count == 1)
+            //{
+            //    return WebScheduleType.WeeklyEveryTimeOnThisChannel;
+            //}
+
+            /////EveryTimeOnThisChannel = 3
+            //else if (info.RecordAnyTime && !info.RecordAnyChannel && (info.Days.Count == 0 || info.Days.IsDaily()))
+            //{
+            //    return WebScheduleType.EveryTimeOnThisChannel;
+            //}
+
+            /////EveryTimeOnEveryChannel = 4
+            //else if (info.RecordAnyChannel && (info.RecordAnyTime || !info.RecordAnyTime) && (info.Days.Count == 0 || info.Days.IsDaily()))
+            //{
+            //    return WebScheduleType.EveryTimeOnEveryChannel;
+            //}
+
+            ///// Weekends = 5
+            //else if (info.Days.IsWeekends())
+            //{
+            //    return WebScheduleType.Weekends;
+            //}
+
+            ///// WorkingDays = 6
+            //else if (info.Days.IsWorkingDays())
+            //{
+            //    return WebScheduleType.WorkingDays;
+            //}
+
+            ///// if we get here, then the user specified options that are not supported by MP
+            //else
+            //{
+            //    return WebScheduleType.EveryTimeOnThisChannel;
+            //}
+
 
             /// Daily = 1
-            else if (!info.RecordAnyTime && !info.RecordAnyChannel && info.Days.IsDaily())
+            if (!info.RecordAnyTime && !info.RecordAnyChannel && !info.RecordNewOnly)
             {
                 return WebScheduleType.Daily;
             }
 
             /// Weekly = 2
-            else if (!info.RecordAnyTime && !info.RecordAnyChannel && info.Days.Count == 1)
+            else if (!info.RecordAnyTime && !info.RecordAnyChannel && info.RecordNewOnly)
             {
                 return WebScheduleType.Weekly;
             }
 
             /// WeeklyEveryTimeOnThisChannel = 7
-            else if (info.RecordAnyTime && !info.RecordAnyChannel && info.Days.Count == 1)
+            else if (info.RecordAnyTime && !info.RecordAnyChannel && info.RecordNewOnly)
             {
                 return WebScheduleType.WeeklyEveryTimeOnThisChannel;
             }
 
             ///EveryTimeOnThisChannel = 3
-            else if (info.RecordAnyTime && !info.RecordAnyChannel && (info.Days.Count == 0 || info.Days.IsDaily()))
+            else if (info.RecordAnyTime && !info.RecordAnyChannel && !info.RecordNewOnly)
             {
                 return WebScheduleType.EveryTimeOnThisChannel;
             }
 
             ///EveryTimeOnEveryChannel = 4
-            else if (info.RecordAnyChannel && (info.RecordAnyTime || !info.RecordAnyTime) && (info.Days.Count == 0 || info.Days.IsDaily()))
+            else if (info.RecordAnyTime && info.RecordAnyChannel)
             {
                 return WebScheduleType.EveryTimeOnEveryChannel;
-            }
-
-            /// Weekends = 5
-            else if (info.Days.IsWeekends())
-            {
-                return WebScheduleType.Weekends;
-            }
-
-            /// WorkingDays = 6
-            else if (info.Days.IsWorkingDays())
-            {
-                return WebScheduleType.WorkingDays;
             }
 
             /// if we get here, then the user specified options that are not supported by MP
             else
             {
                 return WebScheduleType.EveryTimeOnThisChannel;
+            }
+        }
+
+        public static String TimerTypeDesc(this Schedule timer)
+        {
+            if (timer.ScheduleType == 1)
+            {
+                return "MediaPortal timer type: Daily";
+            }
+            else if (timer.ScheduleType == 2)
+            {
+                return String.Format("MediaPortal timer type: Weekly ({0})", timer.StartTime.ToLocalTime().DayOfWeek);
+            }
+            else if (timer.ScheduleType == 3)
+            {
+                return "MediaPortal timer type: Every Time On This Channel";
+            }
+            else if (timer.ScheduleType == 4)
+            {
+                return "MediaPortal timer type: Every Time On Every Channel";
+            }
+            else if (timer.ScheduleType == 5)
+            {
+                return "MediaPortal timer type: Weekends";
+            }
+            else if (timer.ScheduleType == 6)
+            {
+                return "MediaPortal timer type: Working Days";
+            }
+            else if (timer.ScheduleType == 7)
+            {
+                return String.Format("MediaPortal timer type: Weekly ({0}) Every Time On This Channel", timer.StartTime.ToLocalTime().DayOfWeek);
+            }
+            else
+            {
+                return "MediaPortal timer type: Unknown";
             }
         }
 

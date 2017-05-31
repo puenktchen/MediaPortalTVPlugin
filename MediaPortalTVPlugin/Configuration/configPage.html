@@ -69,11 +69,15 @@
 
                     <div is="emby-collapse" title="Program Options">
                         <div class="collapseContent">
-                            <p>List against each Emby genre below, the MediaPortal program genres that belong to it</p>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkProgramImages" />
+                                <span>Use channel logos as program images</span>
+                            </label>
+                            <p>List against each Emby category below, your program guide genres that belong to it</p>
                             <div class="inputContainer">
                                 <input is="emby-input" id="txtMovieGenre" name="txtMovieGenre" label="Movie genres:" />
                                 <div class="fieldDescription">
-                                    Example: Movie,Film,TvMovie
+                                    Example: Movie,Film,TV Movie
                                 </div>
                             </div>
                             <div class="inputContainer">
@@ -156,6 +160,19 @@
                                     The number of minutes into a programme to capture the screen grab for display
                                 </div>
                             </div>
+                            <p><br />Default MediaPortal series timer type for new schedules:</p>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEveryTimeOnThisChannel" />
+                                <span>Every time on this channel</span>
+                            </label>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEveryTimeOnEveryChannel" />
+                                <span>Every time on every channel</span>
+                            </label>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkWeeklyEveryTimeOnThisChannel" />
+                                <span>Weekly, every time on this channel</span>
+                            </label>
                         </div>
                     </div>
 
@@ -163,7 +180,7 @@
                         <div class="collapseContent">
                             <label class="checkboxContainer">
                                 <input is="emby-checkbox" type="checkbox" id="chkEnableTimerCache" />
-                                <span>Enable caching of timers</span>
+                                <span>Enable caching of timers (Always needs Emby restart after toggling)</span>
                             </label>
                             <label class="checkboxContainer">
                                 <input is="emby-checkbox" type="checkbox" id="chkEnableLogging" />
@@ -244,12 +261,16 @@
                     $('#txtUserName', page).val(config.UserName);
                     $('#txtPassword', page).val(config.Password);
                     $('#chkChannelByIndex', page).checked(config.ChannelByIndex || false).checkboxradio("refresh");
+                    $('#chkProgramImages', page).checked(config.ProgramImages || false).checkboxradio("refresh");
                     $('#txtStreamDelay', page).val(config.StreamDelay);
                     $('#chkEnableDirectAccess', page).checked(config.EnableDirectAccess || false).checkboxradio("refresh");
                     $('#chkRequiresPathSubstitution', page).checked(config.RequiresPathSubstitution || false).checkboxradio("refresh");
                     $('#txtLocalFilePath', page).val(config.LocalFilePath);
                     $('#txtRemoteFilePath', page).val(config.RemoteFilePath);
                     $('#txtThumbnailOffset', page).val(config.PreviewThumbnailOffsetMinutes);
+                    $('#chkEveryTimeOnThisChannel', page).checked(config.EveryTimeOnThisChannel || false).checkboxradio("refresh");
+                    $('#chkEveryTimeOnEveryChannel', page).checked(config.EveryTimeOnEveryChannel || false).checkboxradio("refresh");
+                    $('#chkWeeklyEveryTimeOnThisChannel', page).checked(config.WeeklyEveryTimeOnThisChannel || false).checkboxradio("refresh");
                     $('#chkEnableTimerCache', page).checked(config.EnableTimerCache || false).checkboxradio("refresh");
                     $('#chkEnableLogging', page).checked(config.EnableLogging || false).checkboxradio("refresh");
 
@@ -343,6 +364,7 @@
                     config.DefaultChannelGroup = $('#selectChannelGroup', form).val();
                     config.DefaultChannelSortOrder = $('#selectChannelSortOption', form).val();
                     config.ChannelByIndex = $('#chkChannelByIndex', form).checked();
+                    config.ProgramImages = $('#chkProgramImages', form).checked();
                     config.StreamingProfileName = $('#selectProfile', form).val();
                     config.StreamDelay = $('#txtStreamDelay', form).val();
                     config.EnableDirectAccess = $('#chkEnableDirectAccess', form).checked();
@@ -350,6 +372,9 @@
                     config.LocalFilePath = $('#txtLocalFilePath', form).val();
                     config.RemoteFilePath = $('#txtRemoteFilePath', form).val();
                     config.PreviewThumbnailOffsetMinutes = $('#txtThumbnailOffset', form).val();
+                    config.EveryTimeOnThisChannel = $('#chkEveryTimeOnThisChannel', form).checked();
+                    config.EveryTimeOnEveryChannel = $('#chkEveryTimeOnEveryChannel', form).checked();
+                    config.WeeklyEveryTimeOnThisChannel = $('#chkWeeklyEveryTimeOnThisChannel', form).checked();
                     config.EnableTimerCache = $('#chkEnableTimerCache', form).checked();
                     config.EnableLogging = $('#chkEnableLogging', form).checked();
 

@@ -18,9 +18,11 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         {
             ApiHostName = "localhost";
             ApiPortNumber = 4322;
+            ProgramImages = true;
             StreamingProfileName = "Direct";
-            PreviewThumbnailOffsetMinutes = 10;
             StreamDelay = 0;
+            PreviewThumbnailOffsetMinutes = 10;
+            WeeklyEveryTimeOnThisChannel = true;
             EnableTimerCache = true;
 
             // Initialise this
@@ -73,6 +75,11 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         public bool ChannelByIndex { get; set; }
 
         /// <summary>
+        /// Enable program images
+        /// </summary>
+        public bool ProgramImages { get; set; }
+
+        /// <summary>
         /// The name of the MPExtended profile to use for streaming
         /// </summary>
         public String StreamingProfileName { get; set; }
@@ -101,6 +108,33 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         /// The remote recording share of MediaPortal
         /// </summary>
         public string RemoteFilePath { get; set; }
+
+        /// <summary>
+        /// MediaPortal series timer type
+        /// </summary>
+        public bool EveryTimeOnThisChannel { get; set; }
+
+        /// <summary>
+        /// MediaPortal series timer type
+        /// </summary>
+        public bool EveryTimeOnEveryChannel { get; set; }
+
+        /// <summary>
+        /// MediaPortal series timer type
+        /// </summary>
+        public bool WeeklyEveryTimeOnThisChannel { get; set; }
+
+        public String SeriesTimerType()
+        {
+            if (EveryTimeOnThisChannel && !EveryTimeOnEveryChannel && !WeeklyEveryTimeOnThisChannel)
+                return "3";
+            else if (!EveryTimeOnThisChannel && EveryTimeOnEveryChannel && !WeeklyEveryTimeOnThisChannel)
+                return "4";
+            else if (!EveryTimeOnThisChannel && !EveryTimeOnEveryChannel && WeeklyEveryTimeOnThisChannel)
+                return "7";
+            else
+                return null;
+        }
 
         /// <summary>
         /// The number of minutes into a recorded program to grab the screenshot for previewing.
@@ -162,6 +196,11 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
                 {
                     return new ValidationResult(false, "Please specify MediaPortals remote recording share");
                 }
+            }
+
+            if (String.IsNullOrEmpty(SeriesTimerType()))
+            {
+                return new ValidationResult(false, "Please specify MediaPortals default series timer type");
             }
 
             return new ValidationResult(true, String.Empty);

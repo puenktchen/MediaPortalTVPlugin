@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -80,14 +81,28 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     break;
             }
 
-            Plugin.Logger.Info("Found channels: {0}", channels.Where(c => c.VisibleInGuide));
-            return query.Where(c => c.VisibleInGuide).Select((c, index) => new ChannelInfo()
+            foreach (var channel in query.Where(c => c.VisibleInGuide))
             {
-                Name = c.Title,
-                Id = c.Id.ToString(CultureInfo.InvariantCulture),
-                ChannelType = c.IsTv ? ChannelType.TV : ChannelType.Radio,
-                Number = (Configuration.ChannelByIndex) ? (index + 1).ToString("D1", CultureInfo.InvariantCulture) : " ",
-                ImageUrl = _wssProxy.GetChannelLogoUrl(c.Id)
+                _wssProxy.GetChannelLogoUrl(channel.Id);
+            }
+
+            Plugin.Logger.Info("Found channels: {0}", channels.Where(c => c.VisibleInGuide).Count());
+            return query.Where(c => c.VisibleInGuide).Select((c, index) => 
+            {
+                var channel = new ChannelInfo()
+                {
+                    Name = c.Title,
+                    Id = c.Id.ToString(CultureInfo.InvariantCulture),
+                    ChannelType = c.IsTv ? ChannelType.TV : ChannelType.Radio,
+                    Number = (Configuration.ChannelByIndex) ? (index + 1).ToString("D1", CultureInfo.InvariantCulture) : " ",
+                };
+
+                if (File.Exists(String.Format(@"{0}\logos\{1}.jpg", Plugin.Instance.DataFolderPath, c.Id)))
+                {
+                    channel.ImagePath = String.Format(@"{0}\logos\{1}.jpg", Plugin.Instance.DataFolderPath, c.Id);
+                }
+
+                return channel;
             });
         }
 
@@ -127,7 +142,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     EndDate = p.EndTime,
                     Overview = p.Description,
                     Genres = new List<String>(),
-                    ImageUrl = _wssProxy.GetChannelLogoUrl(Int32.Parse(channelId)),
                 };
 
                 if (!String.IsNullOrEmpty(p.EpisodeNum))
@@ -151,9 +165,19 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     genreMapper.PopulateProgramGenres(program);
                 }
 
+                if (Plugin.Instance.Configuration.ProgramImages && File.Exists(String.Format(@"{0}\logos\{1}.jpg", Plugin.Instance.DataFolderPath, channelId)))
+                {
+                    program.ImagePath = String.Format(@"{0}\logos\{1}.jpg", Plugin.Instance.DataFolderPath, channelId); ;
+                }
+
                 return program;
             });
 
+        }
+
+        public int GetRecordingCount(CancellationToken cancellationToken)
+        {
+            return int.Parse(GetFromService<WebStringResult>(cancellationToken, "GetRecordingCount").Result);
         }
 
         public Recording GetRecording(CancellationToken cancellationToken, String recordingId)
@@ -206,6 +230,18 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     }  
                 }
 
+                if (r.IsRecording)
+                {
+                    var schedule = GetSchedule(cancellationToken, r.ScheduleId.ToString());
+                    recording.EndDate = schedule.EndTime + TimeSpan.FromMinutes(schedule.PostRecordInterval);
+
+                    if (Plugin.Instance.Configuration.ProgramImages && File.Exists(String.Format(@"{0}\logos\{1}.jpg", Plugin.Instance.DataFolderPath, recording.ChannelId)))
+                    {
+                        recording.HasImage = true;
+                        recording.ImagePath = String.Format(@"{0}\logos\{1}.jpg", Plugin.Instance.DataFolderPath, recording.ChannelId); ;
+                    }
+                }
+
                 if (!r.IsRecording)
                 {
                     recording.HasImage = true;
@@ -248,7 +284,12 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             return recordings;
         }
 
-        private Schedule GetSchedule(CancellationToken cancellationToken, String Id)
+        public List<Schedule> GetCurrentSchedules(CancellationToken cancellationToken)
+        {
+            return GetFromService<List<Schedule>>(cancellationToken, "GetSchedules");
+        }
+
+        public Schedule GetSchedule(CancellationToken cancellationToken, String Id)
         {
             return GetFromService<Schedule>(cancellationToken, "GetScheduleById?scheduleId={0}", Id);
         }
@@ -256,6 +297,8 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         public IEnumerable<TimerInfo> GetSchedules(CancellationToken cancellationToken)
         {
             List<TimerInfo> schedules = new List<TimerInfo>();
+
+            var genreMapper = new GenreMapper(Plugin.Instance.Configuration);
 
             var schedulesResponse = GetFromService<List<Schedule>>(cancellationToken, "GetSchedules");
             Plugin.Logger.Info("Found one time schedules: {0}", schedulesResponse.Where(c => c.ScheduleType == 0).Count());
@@ -290,6 +333,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     timerInfo.ProgramId = program.Id.ToString(CultureInfo.InvariantCulture);
                     timerInfo.EpisodeTitle = program.EpisodeName;
                     timerInfo.Overview = program.Description;
+                    timerInfo.Genres = new List<String>();
                     timerInfo.Status = (program.HasConflict) ? RecordingStatus.ConflictedNotOk : timerInfo.Status;
 
                     if (!String.IsNullOrEmpty(program.EpisodeNum))
@@ -304,6 +348,13 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                         int snumber;
                         Int32.TryParse((Regex.Match(program.SeriesNum, @"\d+").Value), out snumber);
                         timerInfo.SeasonNumber = snumber;
+                    }
+
+                    //timerInfo.IsProgramSeries = true; //is set by genreMapper
+                    if (!String.IsNullOrEmpty(program.Genre))
+                    {
+                        timerInfo.Genres.Add(program.Genre);
+                        genreMapper.PopulateTimerGenres(timerInfo);
                     }
 
                     Plugin.Logger.Info("One time schedule: \"{0}\"; Channel: {1}; Start Time: {2}; End Time: {3}; Status: {4}", schedule.Title, schedule.ChannelId, schedule.StartTime, schedule.EndTime, timerInfo.Status.ToString());
@@ -375,7 +426,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     Name = r.Title,
                     Id = r.Id.ToString(CultureInfo.InvariantCulture),
                     SeriesId = r.Title,
-                    //SeriesId = r.Id.ToString(CultureInfo.InvariantCulture),
                     ProgramId = r.Id.ToString(CultureInfo.InvariantCulture),
                     ChannelId = r.ChannelId.ToString(CultureInfo.InvariantCulture),
                     StartDate = r.StartTime,
@@ -384,6 +434,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     IsPrePaddingRequired = (r.PreRecordInterval > 0),
                     PostPaddingSeconds = r.PostRecordInterval * 60,
                     PrePaddingSeconds = r.PreRecordInterval * 60,
+                    Overview = GeneralExtensions.TimerTypeDesc(r),
                 };
 
                 UpdateScheduling(seriesTimerInfo, r);
@@ -405,6 +456,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             seriesTimerInfo.RecordAnyChannel = false;
             seriesTimerInfo.RecordAnyTime = false;
             seriesTimerInfo.RecordNewOnly = false;
+            seriesTimerInfo.SkipEpisodesInLibrary = false;
 
             switch (schedulingType)
             {
@@ -412,12 +464,13 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     seriesTimerInfo.RecordAnyTime = true;
                     break;
                 case WebScheduleType.EveryTimeOnEveryChannel:
-                    seriesTimerInfo.RecordAnyTime = true;
                     seriesTimerInfo.RecordAnyChannel = true;
+                    seriesTimerInfo.RecordAnyTime = true;
                     break;
                 case WebScheduleType.WeeklyEveryTimeOnThisChannel:
                     seriesTimerInfo.Days.Add(schedule.StartTime.ToLocalTime().DayOfWeek);
                     seriesTimerInfo.RecordAnyTime = true;
+                    seriesTimerInfo.RecordNewOnly = true;
                     break;
                 case WebScheduleType.Daily:
                     seriesTimerInfo.Days.AddRange(new[]
@@ -432,6 +485,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                         });
                     break;
                 case WebScheduleType.WorkingDays:
+                    seriesTimerInfo.RecordNewOnly = true;
                     seriesTimerInfo.Days.AddRange(new[]
                         {
                             DayOfWeek.Monday,
@@ -442,6 +496,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                         });
                     break;
                 case WebScheduleType.Weekends:
+                    seriesTimerInfo.RecordNewOnly = true;
                     seriesTimerInfo.Days.AddRange(new[]
                         {
                            DayOfWeek.Saturday,
@@ -449,6 +504,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                         });
                     break;
                 case WebScheduleType.Weekly:
+                    seriesTimerInfo.RecordNewOnly = true;
                     seriesTimerInfo.Days.Add(schedule.StartTime.ToLocalTime().DayOfWeek);
                     break;
 
@@ -499,10 +555,12 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
 
                 builder.Remove(builder.Length - 1, 1);
 
-                Plugin.Logger.Info("Creating schedule with StartTime: {0}, EndTime: {1}, ProgramData from MP: {2}", timer.StartDate, timer.EndDate, builder.ToString());
-
                 var response = GetFromService<WebBoolResult>(cancellationToken, builder.ToString());
-                if (!response.Result)
+                if (response.Result)
+                {
+                    Plugin.Logger.Info("Creating schedule with StartTime: {0}, EndTime: {1}, ProgramData from MP: {2}", timer.StartDate, timer.EndDate, builder.ToString());
+                }
+                else
                 {
                     throw new LiveTvConflictException();
                 }
@@ -552,11 +610,14 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
 
                 builder.Remove(builder.Length - 1, 1);
 
-                Plugin.Logger.Info("Changed schedule with StartTime: {0}, EndTime: {1}, timerData from MP: {2}",
-                    timer.StartDate, timer.EndDate, builder.ToString());
+                
 
                 var response = GetFromService<WebBoolResult>(cancellationToken, builder.ToString());
-                if (!response.Result)
+                if (response.Result)
+                {
+                    Plugin.Logger.Info("Changed schedule with StartTime: {0}, EndTime: {1}, timerData from MP: {2}", timer.StartDate, timer.EndDate, builder.ToString());
+                }
+                else
                 {
                     throw new LiveTvConflictException();
                 }
@@ -577,7 +638,8 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             builder.AppendFormat("title={0}&", programData.Title);
             builder.AppendFormat("startTime={0}&", programData.StartTime.ToLocalTime().ToUrlDate());
             builder.AppendFormat("endTime={0}&", programData.EndTime.ToLocalTime().ToUrlDate());
-            builder.AppendFormat("scheduleType={0}&", (Int32)schedule.ToScheduleType());
+            //builder.AppendFormat("scheduleType={0}&", (Int32)schedule.ToScheduleType());
+            builder.AppendFormat("scheduleType={0}&", Configuration.SeriesTimerType());
 
             if (schedule.IsPrePaddingRequired & schedule.PrePaddingSeconds > 0)
             {
@@ -591,11 +653,12 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
 
             builder.Remove(builder.Length - 1, 1);
 
-            Plugin.Logger.Info("Creating series schedule with StartTime: {0}, EndTime: {1}, ProgramData from MP: {2}",
-                schedule.StartDate, schedule.EndDate, builder.ToString());
-
             var response = GetFromService<WebBoolResult>(cancellationToken, builder.ToString());
-            if (!response.Result)
+            if (response.Result)
+            {
+                Plugin.Logger.Info("Created series schedule with StartTime: {0}, EndTime: {1}, ProgramData from MP: {2}", schedule.StartDate, schedule.EndDate, builder.ToString());
+            }
+            else
             {
                 throw new LiveTvConflictException();
             }
@@ -629,14 +692,15 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
 
             builder.Remove(builder.Length - 1, 1);
 
-            Plugin.Logger.Info("Changed series schedule with StartTime: {0}, EndTime: {1}, ProgramData from MP: {2}",
-                schedule.StartDate, schedule.EndDate, builder.ToString());
-
             var response = GetFromService<WebBoolResult>(cancellationToken, builder.ToString());
-            if (!response.Result)
+            if (response.Result)
+            {
+                Plugin.Logger.Info("Changed series schedule with StartTime: {0}, EndTime: {1}, ProgramData from MP: {2}", schedule.StartDate, schedule.EndDate, builder.ToString());
+            }
+            else
             {
                 throw new LiveTvConflictException();
-            }          
+            }
 
         }
 
@@ -655,7 +719,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                         && (DateTime.UtcNow < (schedule.EndTime + TimeSpan.FromMinutes(schedule.PostRecordInterval)))
                         && (schedule.ScheduleType == 0))
                     {
-                        string scheduledProgram = GetFromService<List<ScheduledRecording>>(cancellationToken, "GetScheduledRecordingsForToday").Where(s => s.ScheduleId == scheduleId).Select(s => s.ProgramId).FirstOrDefault().ToString();
+                        string scheduledProgram = GetFromService<List<ScheduledRecording>>(cancellationToken, "GetScheduledRecordingsForDate?date={0}", schedule.StartTime.ToLocalTime().Date).Where(s => s.ScheduleId == scheduleId).Select(s => s.ProgramId).FirstOrDefault().ToString();
                         var cancelledProgram = GetFromService<WebBoolResult>(cancellationToken, "CancelSchedule?programId={0}", scheduledProgram);
                     }
                     else
@@ -682,8 +746,13 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         {
             try
             {
-                var response = GetFromService<WebBoolResult>(cancellationToken, "DeleteRecording?id={0}", recordingId);
+                var recording = GetRecording(cancellationToken, recordingId);
+                if (recording.IsRecording)
+                {
+                    DeleteSchedule(cancellationToken, recording.ScheduleId.ToString(CultureInfo.InvariantCulture));
+                }
 
+                var response = GetFromService<WebBoolResult>(cancellationToken, "DeleteRecording?id={0}", recordingId);
                 if (!response.Result)
                 {
                     throw new LiveTvConflictException();
@@ -706,6 +775,11 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         public bool CancelCurrentTimeshifting(CancellationToken cancellationToken, string streamIdentifier)
         {
             return GetFromService<WebBoolResult>(cancellationToken, "CancelCurrentTimeshifting?userName=mpextended-{0}", streamIdentifier).Result;
+        }
+
+        public string GetRecordingRtspUrl(CancellationToken cancellationToken, string recordingId)
+        {
+            return GetFromService<WebStringResult>(cancellationToken, "GetRecordingRtspUrl?id={0}", recordingId).Result;
         }
 
         #endregion

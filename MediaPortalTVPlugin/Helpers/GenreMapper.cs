@@ -144,5 +144,29 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
                 }
             }
         }
+
+        /// <summary>
+        /// Populates the recording genres.
+        /// </summary>
+        /// <param name="recording">The recording.</param>
+        public void PopulateTimerGenres(TimerInfo timer)
+        {
+            // Check there is a recording and genres to map
+            if (timer != null)
+            {
+                if (timer.Genres != null && timer.Genres.Count > 0)
+                {
+                    timer.IsMovie = _movieGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    timer.IsProgramSeries = _seriesGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)))
+                    {
+                        timer.IsProgramSeries = true;
+                    }
+                    timer.IsSports = _sportGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    timer.IsNews = _newsGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    timer.IsKids = _kidsGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                }
+            }
+        }
     }
 }

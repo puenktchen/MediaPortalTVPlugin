@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Web;
@@ -112,12 +116,16 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// <returns></returns>
         public bool CancelStream(CancellationToken cancellationToken, string streamIdentifier)
         {
-            var result = GetFromService<WebBoolResult>(cancellationToken, "FinishStream?identifier={0}", streamIdentifier).Result;
-            if (streamIdentifier.Contains("TV"))
+            if (!String.Equals(Configuration.StreamingProfileName, "Direct", StringComparison.OrdinalIgnoreCase))
             {
-                result = Plugin.TvProxy.CancelCurrentTimeshifting(cancellationToken, streamIdentifier);
+                var ffmpeg = Process.GetProcesses().Where(p => p.ProcessName.ToLower().Contains("ffmpeg"));
+                foreach (var process in ffmpeg.Where(p => p.MainModule.FileName.ToLower().Contains("mpextended")))
+                {
+                    process.Kill();
+                }
             }
-            return result;
+            
+            return GetFromService<WebBoolResult>(cancellationToken, "FinishStream?identifier={0}", streamIdentifier).Result;
         }
 
         private StreamingDetails GetStream(CancellationToken cancellationToken, WebMediaType webMediaType, string itemId, TimeSpan startPosition)
@@ -127,61 +135,42 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             Plugin.Logger.Info("Streaming setting StreamDelay: {0}", Configuration.StreamDelay);
             Plugin.Logger.Info("Streaming Media Type: {0}; Streaming item ID: {1}", webMediaType, itemId);
 
-            var configuration = Plugin.Instance.Configuration;
-            var profile = GetTranscoderProfile(cancellationToken, Configuration.StreamingProfileName);
             var identifier = HttpUtility.UrlEncode(String.Format("{0}-{1}-{2:yyyyMMddHHmmss}", webMediaType, itemId, DateTime.UtcNow));
-            var url = "Streaming URL or Recording Path";
+            var profile = HttpUtility.UrlEncode(GetTranscoderProfile(cancellationToken, Configuration.StreamingProfileName).Name);
 
             var streamingDetails = new StreamingDetails()
             {
-                StreamIdentifier = identifier,
                 SourceInfo = new MediaSourceInfo()
-                {
-                    Id = identifier, //itemId,
-                    ReadAtNativeFramerate = true,
-                    IsInfiniteStream = true,
-                }
             };
 
-            if (webMediaType == WebMediaType.Recording && configuration.EnableDirectAccess)
+            streamingDetails.StreamIdentifier = identifier;
+            streamingDetails.SourceInfo.Id = identifier;
+            streamingDetails.SourceInfo.Protocol = MediaProtocol.Http;
+            streamingDetails.SourceInfo.ReadAtNativeFramerate = true;
+            streamingDetails.SourceInfo.IsInfiniteStream = true;
+            streamingDetails.SourceInfo.IgnoreIndex = true;
+            streamingDetails.SourceInfo.Path = GetUrl(_streamingEndpoint, "DoStream?type={0}&provider={1}&itemId={2}&clientDescription={3}&profileName={4}&startPosition={5}&idleTimeout={6}&identifier={7}",
+                    webMediaType,
+                    STREAM_TV_RECORDING_PROVIDER,
+                    itemId,
+                    identifier,
+                    profile,
+                    (Int32)startPosition.TotalSeconds,
+                    STREAM_TIMEOUT_DIRECT,
+                    identifier);
+
+            if (Configuration.RequiresAuthentication)
             {
-                url = Plugin.TvProxy.GetRecording(cancellationToken, itemId).FileName;
+                string authInfo = String.Format("{0}:{1}", Configuration.UserName, Configuration.Password);
+                authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
 
-                streamingDetails.SourceInfo.Path = url;
-                streamingDetails.SourceInfo.Protocol = MediaProtocol.File;
-
-                if (configuration.RequiresPathSubstitution)
-                {
-                    url = url.Replace(configuration.LocalFilePath, configuration.RemoteFilePath);
-                }
-            }
-            else
-            {
-                url = GetUrl(_streamingEndpoint, "DoStream?type={0}&provider={1}&itemId={2}&clientDescription={3}&profileName={4}&startPosition={5}&idleTimeout={6}&identifier={7}",
-                        webMediaType,
-                        STREAM_TV_RECORDING_PROVIDER,
-                        itemId,
-                        identifier,
-                        profile.Name,
-                        (Int32)startPosition.TotalSeconds,
-                        STREAM_TIMEOUT_DIRECT,
-                        identifier);
-
-                streamingDetails.SourceInfo.Path = url;
-                streamingDetails.SourceInfo.Protocol = MediaProtocol.Http;
-
-                if (configuration.RequiresAuthentication)
-                {
-                    string authInfo = String.Format("{0}:{1}", configuration.UserName, configuration.Password);
-                    authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
-
-                    streamingDetails.SourceInfo.SupportsDirectPlay = false;
-                    streamingDetails.SourceInfo.RequiredHttpHeaders = new Dictionary<string, string> { { "Authentication", "Basic " + authInfo } };
-                }
-
-                System.Threading.Thread.Sleep(Plugin.Instance.Configuration.StreamDelay.Value);
+                streamingDetails.SourceInfo.SupportsDirectPlay = false;
+                streamingDetails.SourceInfo.RequiredHttpHeaders = new Dictionary<string, string> { { "Authentication", "Basic " + authInfo } };
             }
 
+            Thread.Sleep(Plugin.Instance.Configuration.StreamDelay.Value);
+
+            Plugin.Logger.Info("Returning StreamingDetails for: {0}", streamingDetails.SourceInfo.Path);
             return streamingDetails;
         }
 
@@ -204,10 +193,32 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// </summary>
         /// <param name="channelId">The channel id.</param>
         /// <returns></returns>
-        public String GetChannelLogoUrl(int channelId)
+        public void GetChannelLogoUrl(int channelId)
         {
-            return GetUrl(_streamingEndpoint, "GetArtwork?id={0}&artworktype={1}&offset=0&mediatype={2}",
-                    channelId, (Int32)WebFileType.Logo, (Int32)WebMediaType.TV);
+            var remoteUrl = GetUrl(_streamingEndpoint, "GetArtwork?id={0}&artworktype={1}&offset=0&mediatype={2}", channelId, (Int32)WebFileType.Logo, (Int32)WebMediaType.TV);
+            var localUrl = String.Format(@"{0}\logos\{1}.jpg", Plugin.Instance.DataFolderPath, channelId);
+
+            if(!Directory.Exists(String.Format(@"{0}\logos", Plugin.Instance.DataFolderPath)))
+                Directory.CreateDirectory(String.Format(@"{0}\logos", Plugin.Instance.DataFolderPath));
+
+            var request = (HttpWebRequest)WebRequest.Create(remoteUrl);
+            
+            try
+            {
+                using (var response = (HttpWebResponse)request.GetResponse())
+                {
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(response.ResponseUri, localUrl);
+                    }
+
+                    response.Close();
+                }
+            }
+            catch (WebException)
+            {
+                Plugin.Logger.Info("No image available for channel id: {0}", channelId);
+            }
         }
     }
 }
