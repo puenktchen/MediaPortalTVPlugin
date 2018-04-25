@@ -6,7 +6,6 @@ using System.Threading;
 using MediaBrowser.Model.Services;
 using MediaBrowser.Plugins.MediaPortal.Services.Entities;
 using MediaBrowser.Plugins.MediaPortal.Services.Exceptions;
-using MediaBrowser.Plugins.MediaPortal.Entities;
 
 namespace MediaBrowser.Plugins.MediaPortal
 {
@@ -15,13 +14,18 @@ namespace MediaBrowser.Plugins.MediaPortal
     {
     }
 
-    [Route("/MediaPortalPlugin/ChannelGroups", "GET", Summary = "Gets a list of channel groups")]
-    public class GetChannelGroups : IReturn<List<ChannelGroup>>
+    [Route("/MediaPortalPlugin/TvChannelGroups", "GET", Summary = "Gets a list of tv channel groups")]
+    public class GetTvChannelGroups : IReturn<List<ChannelGroup>>
     {
     }
 
-    [Route("/MediaPortalPlugin/ChannelSortOptions", "GET", Summary = "Gets a list of channel sort ordering")]
-    public class GetChannelSortOptions : IReturn<List<ChannelSortOption>>
+    [Route("/MediaPortalPlugin/RadioChannelGroups", "GET", Summary = "Gets a list of radio channel groups")]
+    public class GetRadioChannelGroups : IReturn<List<ChannelGroup>>
+    {
+    }
+
+    [Route("/MediaPortalPlugin/SkipAlreadyInLibraryProfiles", "GET", Summary = "Gets a list of profiles to skip timers for Emy library items")]
+    public class GetSkipAlreadyInLibraryProfiles : IReturn<List<String>>
     {
     }
 
@@ -51,12 +55,12 @@ namespace MediaBrowser.Plugins.MediaPortal
             return profiles;
         }
 
-        public object Get(GetChannelGroups request)
+        public object Get(GetTvChannelGroups request)
         {
-            var channelGroups = new List<ChannelGroup>();
+            var tvChannelGroups = new List<ChannelGroup>();
             try
             {
-                channelGroups = Plugin.TvProxy.GetChannelGroups(new CancellationToken());
+                tvChannelGroups = Plugin.TvProxy.GetTvChannelGroups(new CancellationToken());
             }
             catch (ServiceAuthenticationException)
             {
@@ -64,22 +68,34 @@ namespace MediaBrowser.Plugins.MediaPortal
             }
             catch (Exception exception)
             {
-                Plugin.Logger.ErrorException("There was an issue retrieving channel groups", exception);
+                Plugin.Logger.ErrorException("There was an issue retrieving tv channel groups", exception);
             }
 
-            return channelGroups;
+            return tvChannelGroups;
         }
 
-        public object Get(GetChannelSortOptions request)
+        public object Get(GetRadioChannelGroups request)
         {
-            var options = new List<ChannelSortOption>() 
+            var radioChannelGroups = new List<ChannelGroup>();
+            try
             {
-                new ChannelSortOption() { Id = ChannelSorting.Default.ToString(), Description = "Default" }, 
-                new ChannelSortOption() { Id = ChannelSorting.ChannelId.ToString(), Description = "Channel Id" }, 
-                new ChannelSortOption() { Id = ChannelSorting.ChannelName.ToString(), Description = "Channel Name" }, 
-            };
+                radioChannelGroups = Plugin.TvProxy.GetRadioChannelGroups(new CancellationToken());
+            }
+            catch (ServiceAuthenticationException)
+            {
+                // Do nothing, allow an empty list to be passed out
+            }
+            catch (Exception exception)
+            {
+                Plugin.Logger.ErrorException("There was an issue retrieving radio channel groups", exception);
+            }
 
-            return options;
+            return radioChannelGroups;
+        }
+
+        public object Get(GetSkipAlreadyInLibraryProfiles request)
+        {
+            return new List<string>(new string[] { "Season and Episode Numbers", "Episode Name" });
         }
 
         public object Get(GetConnection request)

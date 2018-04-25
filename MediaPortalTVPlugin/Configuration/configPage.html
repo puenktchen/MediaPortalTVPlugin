@@ -42,28 +42,23 @@
                     </div>
                     <div>
                         <button is="emby-button" type="button" id="saveAndTest" class="raised button-cancel block"><span>Save Connection Settings</span></button>
-                        <p id="connectionTestResult"></p>
                     </div>
                     <br />
 
                     <div is="emby-collapse" title="Channel Options">
                         <div class="collapseContent">
                             <div class="selectContainer">
-                                <select is="emby-select" id="selectChannelGroup" data-mini="true" label="Channel group:"></select>
+                                <select is="emby-select" id="selectTvChannelGroup" data-mini="true" label="TV channel group:"></select>
                                 <div class="fieldDescription">
-                                    Select the channel group you wish to use in Emby
+                                    Select the tv channel group you wish to use in Emby
                                 </div>
                             </div>
                             <div class="selectContainer">
-                                <select is="emby-select" id="selectChannelSortOption" label="Channel sort order:"></select>
+                                <select is="emby-select" id="selectRadioChannelGroup" data-mini="true" label="Radio channel group:"></select>
                                 <div class="fieldDescription">
-                                    Select the order in which the channels should be displayed
+                                    Select the radio channel group you wish to use in Emby
                                 </div>
                             </div>
-                            <label class="checkboxContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkChannelByIndex" />
-                                <span>Enable channel index (Helps with channel sorting problems)</span>
-                            </label>
                         </div>
                     </div>
 
@@ -73,7 +68,7 @@
                                 <input is="emby-checkbox" type="checkbox" id="chkProgramImages" />
                                 <span>Use channel logos as program images</span>
                             </label>
-                            <p>List against each Emby category below, your program guide genres that belong to it</p>
+                            <p>List against each Emby category below, your MediaPortal program guide genres that belong to it</p>
                             <div class="inputContainer">
                                 <input is="emby-input" id="txtMovieGenre" name="txtMovieGenre" label="Movie genres:" />
                                 <div class="fieldDescription">
@@ -115,6 +110,14 @@
 
                     <div is="emby-collapse" title="Streaming Options">
                         <div class="collapseContent">
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableProbing" />
+                                <span>Enable stream probing<br />(Needed for audio and subtitle selection. Disabled is much faster and reliable at the cost of CPU resources)</span>
+                            </label>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkRtspStreaming" />
+                                <span>Use RTSP for live tv streaming</span>
+                            </label>
                             <div class="selectContainer">
                                 <select is="emby-select" id="selectProfile" label="Streaming profiles:"></select>
                                 <div class="fieldDescription">
@@ -133,34 +136,47 @@
                     <div is="emby-collapse" title="Recording Options">
                         <div class="collapseContent">
                             <label class="checkboxContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkEnableDirectAccess" />
-                                <span>Enable direct access of recording files</span>
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableRecordingImport" />
+                                <span>Import recordings from MediaPortal to Emby recording channel<br />(Disable this, if you want to use Emby's DVR library and hide the channel for every user)</span>
                             </label>
-                            <label class="checkboxContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkRequiresPathSubstitution" />
-                                <span>Direct access of recording files requires pathsubstitution</span>
-                            </label>
-                            <div id="txtPathsubstitutionFields">
-                                <div class="inputContainer">
-                                    <input is="emby-input" id="txtLocalFilePath" name="txtLocalFilePath" label="Local path:" />
-                                    <div class="fieldDescription">
-                                        The local recording folder specified in MediaPortal TVServer settings
+                            <div id="txtRecordingOptionsFields">
+                                <p><br />Import Options:</p>
+                                <label class="checkboxContainer">
+                                    <input is="emby-checkbox" type="checkbox" id="chkEnableTmdbLookup" />
+                                    <span>Enable TheMovieDatabase online lookup for movie and series recording posters</span>
+                                </label>
+                                <label class="checkboxContainer">
+                                    <input is="emby-checkbox" type="checkbox" id="chkEnableDirectAccess" />
+                                    <span>Enable direct access of recording files</span>
+                                </label>
+                                <div id="txtRequiresPathSubstitutionFields">
+                                    <label class="checkboxContainer">
+                                        <input is="emby-checkbox" type="checkbox" id="chkRequiresPathSubstitution" />
+                                        <span>Direct access of recording files requires pathsubstitution</span>
+                                    </label>
+                                    <div id="txtPathsubstitutionFields">
+                                        <div class="inputContainer">
+                                            <input is="emby-input" id="txtLocalFilePath" name="txtLocalFilePath" label="Local path:" />
+                                            <div class="fieldDescription">
+                                                The local recording folder specified in MediaPortal TVServer settings
+                                            </div>
+                                        </div>
+                                        <div class="inputContainer">
+                                            <input is="emby-input" id="txtRemoteFilePath" name="txtRemoteFilePath" label="Remote share:" />
+                                            <div class="fieldDescription">
+                                                The remote recording share to access MediaPortal recordings
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="inputContainer">
-                                    <input is="emby-input" id="txtRemoteFilePath" name="txtRemoteFilePath" label="Remote share:" />
+                                    <input is="emby-input" id="txtThumbnailOffset" name="txtThumbnailOffset" label="Recording thumbnail offset (mins):" />
                                     <div class="fieldDescription">
-                                        The remote recording share to access MediaPortal recordings
+                                        The number of minutes into a programme to capture the screen grab for display
                                     </div>
                                 </div>
                             </div>
-                            <div class="inputContainer">
-                                <input is="emby-input" id="txtThumbnailOffset" name="txtThumbnailOffset" label="Recording thumbnail offset (mins):" />
-                                <div class="fieldDescription">
-                                    The number of minutes into a programme to capture the screen grab for display
-                                </div>
-                            </div>
-                            <p><br />Default MediaPortal series timer type for new schedules:</p>
+                            <p><br />Default series timer settings for new schedules:</p>
                             <label class="checkboxContainer">
                                 <input is="emby-checkbox" type="checkbox" id="chkEveryTimeOnThisChannel" />
                                 <span>Every time on this channel</span>
@@ -173,14 +189,26 @@
                                 <input is="emby-checkbox" type="checkbox" id="chkWeeklyEveryTimeOnThisChannel" />
                                 <span>Weekly, every time on this channel</span>
                             </label>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkSkipAlreadyInLibrary" />
+                                <span>Delete timers if item is already in Emby's library</span>
+                            </label>
+                            <div class="selectContainer">
+                                <select is="emby-select" id="selectSkipAlreadyInLibraryProfile" data-mini="true" label="Compare timers with library items by:"></select>
+                            </div>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkAutoCreateTimers" />
+                                <span>Autocreates timers for episodes missing from Emby's library <a href="scheduledtasks.html" id="saveAndLeave">(Click me)</a>
+                                <br />(For this to take affect, you have to enable download of missing episodes in your tv show libraries)</span>
+                            </label>
                         </div>
                     </div>
 
                     <div is="emby-collapse" title="Advanced Options">
                         <div class="collapseContent">
                             <label class="checkboxContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkEnableTimerCache" />
-                                <span>Enable caching of timers (Always needs Emby restart after toggling)</span>
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableImageProcessing" />
+                                <span>Enable custom image processing (Works best with transparent images that have the actual logo size)</span>
                             </label>
                             <label class="checkboxContainer">
                                 <input is="emby-checkbox" type="checkbox" id="chkEnableLogging" />
@@ -213,12 +241,39 @@
             };
 
 
+            $("#chkEnableRecordingImport").click(function () {
+                checkEnableRecordingImport();
+                checkEnableDirectAccess();
+                checkRequiresPathSubstitution();
+            });
+
+            function checkEnableRecordingImport() {
+                if ($("#chkEnableRecordingImport").prop('checked')) {
+                    $("#txtRecordingOptionsFields").show();
+                } else {
+                    $("#txtRecordingOptionsFields").hide();
+                };
+            };
+
+            $("#chkEnableDirectAccess").click(function () {
+                checkEnableDirectAccess();
+                checkRequiresPathSubstitution();
+            });
+
+            function checkEnableDirectAccess() {
+                if ($("#chkEnableRecordingImport").prop('checked') && $("#chkEnableDirectAccess").prop('checked')) {
+                    $("#txtRequiresPathSubstitutionFields").show();
+                } else {
+                    $("#txtRequiresPathSubstitutionFields").hide();
+                };
+            };
+
             $("#chkRequiresPathSubstitution").click(function () {
                 checkRequiresPathSubstitution();
             });
 
             function checkRequiresPathSubstitution() {
-                if ($("#chkRequiresPathSubstitution").prop('checked')) {
+                if ($("#chkEnableRecordingImport").prop('checked') && $("#chkEnableDirectAccess").prop('checked') && $("#chkRequiresPathSubstitution").prop('checked')) {
                     $("#txtPathsubstitutionFields").show();
                 } else {
                     $("#txtPathsubstitutionFields").hide();
@@ -235,7 +290,11 @@
                 var page = this;
 
                 $("#saveAndTest", page).click(function () {
-                    saveAndTestConfiguration($('.mediaPortalConfigurationPage'));
+                    saveConfiguration($('.mediaPortalConfigurationPage'));
+                });
+
+                $("#saveAndLeave", page).click(function () {
+                    saveConfiguration($('.mediaPortalConfigurationPage'));
                 });
 
                 $('form', page).on('submit', function (e) {
@@ -260,9 +319,12 @@
                     $('#chkRequiresAuthentication', page).checked(config.RequiresAuthentication || false).checkboxradio("refresh");
                     $('#txtUserName', page).val(config.UserName);
                     $('#txtPassword', page).val(config.Password);
-                    $('#chkChannelByIndex', page).checked(config.ChannelByIndex || false).checkboxradio("refresh");
                     $('#chkProgramImages', page).checked(config.ProgramImages || false).checkboxradio("refresh");
+                    $('#chkEnableProbing', page).checked(config.EnableProbing || false).checkboxradio("refresh");
+                    $('#chkRtspStreaming', page).checked(config.RtspStreaming || false).checkboxradio("refresh");
                     $('#txtStreamDelay', page).val(config.StreamDelay);
+                    $('#chkEnableRecordingImport', page).checked(config.EnableRecordingImport || false).checkboxradio("refresh");
+                    $('#chkEnableTmdbLookup', page).checked(config.EnableTmdbLookup || false).checkboxradio("refresh");
                     $('#chkEnableDirectAccess', page).checked(config.EnableDirectAccess || false).checkboxradio("refresh");
                     $('#chkRequiresPathSubstitution', page).checked(config.RequiresPathSubstitution || false).checkboxradio("refresh");
                     $('#txtLocalFilePath', page).val(config.LocalFilePath);
@@ -271,15 +333,19 @@
                     $('#chkEveryTimeOnThisChannel', page).checked(config.EveryTimeOnThisChannel || false).checkboxradio("refresh");
                     $('#chkEveryTimeOnEveryChannel', page).checked(config.EveryTimeOnEveryChannel || false).checkboxradio("refresh");
                     $('#chkWeeklyEveryTimeOnThisChannel', page).checked(config.WeeklyEveryTimeOnThisChannel || false).checkboxradio("refresh");
-                    $('#chkEnableTimerCache', page).checked(config.EnableTimerCache || false).checkboxradio("refresh");
+                    $('#chkSkipAlreadyInLibrary', page).checked(config.SkipAlreadyInLibrary || false).checkboxradio("refresh");
+                    $('#chkAutoCreateTimers', page).checked(config.AutoCreateTimers || false).checkboxradio("refresh");
+                    $('#chkEnableImageProcessing', page).checked(config.EnableImageProcessing || false).checkboxradio("refresh");
                     $('#chkEnableLogging', page).checked(config.EnableLogging || false).checkboxradio("refresh");
 
-                    checkRequiresAuthentication()
+                    checkRequiresAuthentication();
+
+                    checkEnableRecordingImport();
+                    checkEnableDirectAccess();
                     checkRequiresPathSubstitution();
+
                     loadSelects(config, page);
                     loadGenres(config, page);
-
-                    //TestConnection();
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -301,25 +367,37 @@
 
                 ApiClient.ajax({
                     type: "GET",
-                    url: ApiClient.getUrl("MediaPortalPlugin/ChannelGroups"),
+                    url: ApiClient.getUrl("MediaPortalPlugin/TvChannelGroups"),
                     dataType: "json"
                 }).then(function (groups) {
-                    $('#selectChannelGroup', page).html(groups.map(function (group) {
-                        var selectedText = group.Id == config.DefaultChannelGroup ? " selected" : "";
+                    $('#selectTvChannelGroup', page).html(groups.map(function (group) {
+                        var selectedText = group.Id == config.TvChannelGroup ? " selected" : "";
                         return '<option value="' + group.Id + '"' + selectedText + '>' + group.GroupName + '</option>';
                     }));
                 });
 
                 ApiClient.ajax({
                     type: "GET",
-                    url: ApiClient.getUrl("MediaPortalPlugin/ChannelSortOptions"),
+                    url: ApiClient.getUrl("MediaPortalPlugin/RadioChannelGroups"),
                     dataType: "json"
-                }).then(function (options) {
-                    $('#selectChannelSortOption', page).html(options.map(function (option) {
-                        var selectedText = option.Id == config.DefaultChannelSortOrder ? " selected" : "";
-                        return '<option value="' + option.Id + '"' + selectedText + '>' + option.Description + '</option>';
+                }).then(function (groups) {
+                    $('#selectRadioChannelGroup', page).html(groups.map(function (group) {
+                        var selectedText = group.Id == config.RadioChannelGroup ? " selected" : "";
+                        return '<option value="' + group.Id + '"' + selectedText + '>' + group.GroupName + '</option>';
                     }));
                 });
+
+                ApiClient.ajax({
+                    type: "GET",
+                    url: ApiClient.getUrl("MediaPortalPlugin/SkipAlreadyInLibraryProfiles"),
+                    dataType: "json"
+                }).then(function (methodes) {
+                    $('#selectSkipAlreadyInLibraryProfile', page).html(methodes.map(function (methode) {
+                        var selectedText = methode == config.SkipAlreadyInLibraryProfile ? " selected" : "";
+                        return '<option value="' + methode + '"' + selectedText + '>' + methode + '</option>';
+                    }));
+                });
+
             }
 
             function loadGenres(config, page) {
@@ -347,10 +425,6 @@
                 }
             }
 
-            function saveAndTestConfiguration(form) {
-                saveConfiguration(form);
-            }
-
             function saveConfiguration(form) {
                 Dashboard.showLoadingMsg();
 
@@ -361,12 +435,15 @@
                     config.RequiresAuthentication = $('#chkRequiresAuthentication', form).checked();
                     config.UserName = $('#txtUserName', form).val();
                     config.Password = $('#txtPassword', form).val();
-                    config.DefaultChannelGroup = $('#selectChannelGroup', form).val();
-                    config.DefaultChannelSortOrder = $('#selectChannelSortOption', form).val();
-                    config.ChannelByIndex = $('#chkChannelByIndex', form).checked();
+                    config.TvChannelGroup = $('#selectTvChannelGroup', form).val();
+                    config.RadioChannelGroup = $('#selectRadioChannelGroup', form).val();
                     config.ProgramImages = $('#chkProgramImages', form).checked();
+                    config.EnableProbing = $('#chkEnableProbing', form).checked();
+                    config.RtspStreaming = $('#chkRtspStreaming', form).checked();
                     config.StreamingProfileName = $('#selectProfile', form).val();
                     config.StreamDelay = $('#txtStreamDelay', form).val();
+                    config.EnableRecordingImport = $('#chkEnableRecordingImport', form).checked();
+                    config.EnableTmdbLookup = $('#chkEnableTmdbLookup', form).checked();
                     config.EnableDirectAccess = $('#chkEnableDirectAccess', form).checked();
                     config.RequiresPathSubstitution = $('#chkRequiresPathSubstitution', form).checked();
                     config.LocalFilePath = $('#txtLocalFilePath', form).val();
@@ -375,7 +452,10 @@
                     config.EveryTimeOnThisChannel = $('#chkEveryTimeOnThisChannel', form).checked();
                     config.EveryTimeOnEveryChannel = $('#chkEveryTimeOnEveryChannel', form).checked();
                     config.WeeklyEveryTimeOnThisChannel = $('#chkWeeklyEveryTimeOnThisChannel', form).checked();
-                    config.EnableTimerCache = $('#chkEnableTimerCache', form).checked();
+                    config.SkipAlreadyInLibrary = $('#chkSkipAlreadyInLibrary', form).checked();
+                    config.SkipAlreadyInLibraryProfile = $('#selectSkipAlreadyInLibraryProfile', form).val();
+                    config.AutoCreateTimers = $('#chkAutoCreateTimers', form).checked();
+                    config.EnableImageProcessing = $('#chkEnableImageProcessing', form).checked();
                     config.EnableLogging = $('#chkEnableLogging', form).checked();
 
                     // Copy over the genre mapping fields
@@ -401,29 +481,6 @@
                 Dashboard.hideLoadingMsg();
             }
 
-            function TestConnection() {
-                var result = "false";
-
-                fetch(ApiClient.getUrl("MediaPortalPlugin/TestConnection"), {
-                    method: "GET",
-                    headers: new Headers({
-                        "Content-Type": "application/json"
-                    })
-                }).then(function (response) {
-                    return response.json();
-                }).then(function (jsonResponse) {
-                    result = jsonResponse;
-                    if (result === true) {
-                        $("#connectionTestResult").text("Successfully connected");
-                        $("#connectionTestResult").css({ 'color': 'green' });
-                    } else {
-                        $("#connectionTestResult").text("Unable to connect to MP, please review your connection settings before continuing");
-                        $("#connectionTestResult").css({ 'color': 'red' });
-                    };
-                    $("#connectionTestResult").show();
-                });
-                return result;
-            }
         </script>
 
     </div>

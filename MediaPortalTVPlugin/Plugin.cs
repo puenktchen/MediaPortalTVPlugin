@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
+
+using MediaBrowser.Controller;
+
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Plugins;
@@ -35,7 +39,7 @@ namespace MediaBrowser.Plugins.MediaPortal
         /// <param name="logger">The logger.</param>
         public Plugin(
             IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IHttpClient httpClient, 
-            IJsonSerializer jsonSerializer, INetworkManager networkManager, ILogger logger)
+            IJsonSerializer jsonSerializer, INetworkManager networkManager, ILogger logger, TmdbLookup tmdbLookup)
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
@@ -44,7 +48,7 @@ namespace MediaBrowser.Plugins.MediaPortal
 
             // Create our shared service proxies
             StreamingProxy = new StreamingServiceProxy(httpClient, jsonSerializer, networkManager);
-            TvProxy = new TvServiceProxy(httpClient, jsonSerializer, StreamingProxy);
+            TvProxy = new TvServiceProxy(httpClient, jsonSerializer, StreamingProxy, tmdbLookup);
         }
 
         /// <summary>
@@ -66,6 +70,12 @@ namespace MediaBrowser.Plugins.MediaPortal
             {
                 return "MediaPortal TV Plugin to enable Live TV streaming and scheduling.";
             }
+        }
+
+	private Guid _id = new Guid("2c6a0219-7621-4b06-8a64-da3f7038b649");
+        public override Guid Id
+        {
+            get { return _id; }
         }
 
         /// <summary>

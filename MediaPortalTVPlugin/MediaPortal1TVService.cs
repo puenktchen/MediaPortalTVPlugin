@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,9 +20,8 @@ namespace MediaBrowser.Plugins.MediaPortal
     public class MediaPortal1TvService : ILiveTvService
     {
         private static StreamingDetails _currentStreamDetails;
-        public static bool refreshTimers { get; set; }
-        private static int lastRecordingCount { get; set; }
-        private static int lastSchedules { get; set; }
+
+        public DateTime LastRecordingChange = DateTime.MinValue;
 
         public string HomePageUrl
         {
@@ -35,7 +33,7 @@ namespace MediaBrowser.Plugins.MediaPortal
             get { return "MPExtended (MediaPortal Live TV Service)"; }
         }
 
-    #region General
+        #region General
 
         public Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
         {
@@ -119,9 +117,9 @@ namespace MediaBrowser.Plugins.MediaPortal
             throw new NotImplementedException();
         }
 
-    #endregion
+        #endregion
 
-    #region Channels
+        #region Channels
 
         public Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
         {
@@ -143,13 +141,22 @@ namespace MediaBrowser.Plugins.MediaPortal
             throw new NotImplementedException();
         }
 
-    #endregion
+        #endregion
 
-    #region Recordings
+        #region Recordings
 
-        public Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult(Plugin.TvProxy.GetRecordings(cancellationToken));
+            return new List<RecordingInfo>();
+        }
+
+        public Task<IEnumerable<MyRecordingInfo>> GetAllRecordingsAsync(CancellationToken cancellationToken)
+        {
+            if (Plugin.Instance.Configuration.EnableRecordingImport)
+            {
+                return Task.FromResult(Plugin.TvProxy.GetRecordings(cancellationToken));
+            }
+            throw new NotImplementedException();
         }
 
         public Task<ImageStream> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
@@ -160,12 +167,13 @@ namespace MediaBrowser.Plugins.MediaPortal
         public Task DeleteRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.DeleteRecording(recordingId, cancellationToken);
+            LastRecordingChange = DateTime.UtcNow;
             return Task.Delay(0, cancellationToken);
         }
 
-    #endregion
+        #endregion
 
-    #region Timers
+        #region Timers
 
         public Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program)
         {
@@ -183,106 +191,64 @@ namespace MediaBrowser.Plugins.MediaPortal
                 PrePaddingSeconds = (Int32)scheduleDefaults.PreRecordInterval.TotalSeconds,
                 RecordNewOnly = true,
                 RecordAnyChannel = false,
-                RecordAnyTime = false,
+                RecordAnyTime = true,
                 Days = scheduleDayOfWeek,
-                SkipEpisodesInLibrary = false,
+                SkipEpisodesInLibrary = Plugin.Instance.Configuration.SkipAlreadyInLibrary ? true : false,
             });
         }
 
         public Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
-            var timerCache = MemoryCache.Default;
-
-            if (refreshTimers)
-            {
-                timerCache.Remove("timers");
-                refreshTimers = false;
-            }
-
-            if (!timerCache.Contains("timers"))
-            {
-                Plugin.Logger.Info("Add timers to memory cache");
-                var expiration = (Plugin.Instance.Configuration.EnableTimerCache) ? DateTimeOffset.UtcNow.AddHours(24) : DateTimeOffset.UtcNow.AddSeconds(20);
-                var results = Plugin.TvProxy.GetSchedules(cancellationToken);
-
-                timerCache.Add("timers", Task.FromResult(results), expiration);
-            }
-
-            Plugin.Logger.Info("Return timers from memory cache");
-            return (Task<IEnumerable<TimerInfo>>)timerCache.Get("timers", null);
+            return Task.FromResult(Plugin.TvProxy.GetSchedulesFromMemory(cancellationToken));
         }
 
         public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
+            LastRecordingChange = DateTime.UtcNow;
             Plugin.TvProxy.CreateSchedule(cancellationToken, info);
-            RefreshTimers(cancellationToken);
             return Task.Delay(0, cancellationToken);
         }
 
         public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.ChangeSchedule(cancellationToken, info);
-            RefreshTimers(cancellationToken);
+            LastRecordingChange = DateTime.UtcNow;
             return Task.Delay(0, cancellationToken);
         }
 
         public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.DeleteSchedule(cancellationToken, timerId);
-            RefreshTimers(cancellationToken);
+            LastRecordingChange = DateTime.UtcNow;
             return Task.Delay(0, cancellationToken);
         }
 
         public Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
         {
-            var seriestimerCache = MemoryCache.Default;
-
-            if (refreshTimers)
-            {
-                seriestimerCache.Remove("seriestimers");
-                refreshTimers = false;
-            }
-
-            if (!seriestimerCache.Contains("seriestimers"))
-            {
-                Plugin.Logger.Info("Add series timers to memory cache");
-                var expiration = (Plugin.Instance.Configuration.EnableTimerCache) ? DateTimeOffset.UtcNow.AddHours(24) : DateTimeOffset.UtcNow.AddSeconds(20);
-                var results = Plugin.TvProxy.GetSeriesSchedules(cancellationToken);
-
-                seriestimerCache.Add("seriestimers", Task.FromResult(results), expiration);
-            }
-
-            Plugin.Logger.Info("Return series timers from memory cache");
-            return (Task<IEnumerable<SeriesTimerInfo>>)seriestimerCache.Get("seriestimers", null);
+            return Task.FromResult(Plugin.TvProxy.GetSeriesSchedulesFromMemory(cancellationToken));
         }
 
         public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.CreateSeriesSchedule(cancellationToken, info);
-            RefreshSeriesTimers(cancellationToken);
-            RefreshTimers(cancellationToken);
             return Task.Delay(0, cancellationToken);
         }
 
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.ChangeSeriesSchedule(cancellationToken, info);
-            RefreshSeriesTimers(cancellationToken);
-            RefreshTimers(cancellationToken);
-            return Task.Delay(0, cancellationToken);;
+            return Task.Delay(0, cancellationToken);
         }
 
         public Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.DeleteSchedule(cancellationToken, timerId);
-            RefreshSeriesTimers(cancellationToken);
-            RefreshTimers(cancellationToken);
             return Task.Delay(0, cancellationToken);
         }
 
-    #endregion
+        #endregion
 
-    #region Streaming
+        #region Streaming
 
         public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
@@ -297,8 +263,7 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public Task<MediaSourceInfo> GetRecordingStream(string recordingId, string streamId, CancellationToken cancellationToken)
         {
-            _currentStreamDetails = Plugin.StreamingProxy.GetRecordingStream(cancellationToken, recordingId, TimeSpan.Zero);
-            return Task.FromResult(_currentStreamDetails.SourceInfo);
+            throw new NotImplementedException();
         }
 
         public Task<List<MediaSourceInfo>> GetRecordingStreamMediaSources(string recordingId, CancellationToken cancellationToken)
@@ -324,51 +289,12 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         #endregion
 
-    #region Events
-
-        public void CheckRecordingStatus(CancellationToken cancellationToken)
-        {
-            var schedules = Plugin.TvProxy.GetCurrentSchedules(cancellationToken);
-            int currentSchedules = schedules.Sum(s => s.Id) * schedules.Sum(s => s.ScheduleType) * schedules.Sum(s => s.PreRecordInterval) * schedules.Sum(s => s.PostRecordInterval);
-            if (currentSchedules != lastSchedules)
-            {
-                Plugin.Logger.Info("Changes of timers at TVServer detected. Refreshing timers now.");
-                RefreshTimers(cancellationToken);
-                RefreshSeriesTimers(cancellationToken);
-                lastSchedules = currentSchedules;
-            }
-
-            int currentRecordingCount = Plugin.TvProxy.GetRecordingCount(cancellationToken);
-            if (currentRecordingCount != lastRecordingCount)
-            {
-                RecordingStatusChangedEventArgs args = new RecordingStatusChangedEventArgs();
-                args.NewStatus = RecordingStatus.New;
-
-                Plugin.Logger.Info("Changes of recordings at TVServer detected. Refreshing recordings now.");
-                RecordingStatusChanged?.Invoke(this, args);
-                lastRecordingCount = currentRecordingCount; 
-            }
-        }
-
-        public void RefreshTimers(CancellationToken cancellationToken)
-        {
-            refreshTimers = true;
-            Plugin.Logger.Info("Refreshing onetime schedules now.");
-            GetTimersAsync(cancellationToken);
-        }
-
-        public void RefreshSeriesTimers(CancellationToken cancellationToken)
-        {
-            refreshTimers = true;
-            Plugin.Logger.Info("Refreshing series schedules now.");
-            GetSeriesTimersAsync(cancellationToken);
-        }
+        #region Events
 
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
 
         public event EventHandler DataSourceChanged;
 
-    #endregion
-
+        #endregion
     }
 }

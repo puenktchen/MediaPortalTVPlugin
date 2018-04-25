@@ -19,11 +19,12 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
             ApiHostName = "localhost";
             ApiPortNumber = 4322;
             ProgramImages = true;
+            EnableProbing = true;
             StreamingProfileName = "Direct";
             StreamDelay = 0;
+            EnableRecordingImport = true;
             PreviewThumbnailOffsetMinutes = 10;
             WeeklyEveryTimeOnThisChannel = true;
-            EnableTimerCache = true;
 
             // Initialise this
             GenreMappings = new SerializableDictionary<string, List<string>>();
@@ -55,29 +56,34 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         public string Password { get; set; }
 
         /// <summary>
-        /// The default channel group to use in MB
+        /// The default tv channel group to use in Emby
         /// </summary>
-        public Int32 DefaultChannelGroup { get; set; }
+        public Int32 TvChannelGroup { get; set; }
 
         /// <summary>
-        /// The genre mappings, to map localised MP genres, to MB genres.
+        /// The default radio channel group to use in Emby
+        /// </summary>
+        public Int32 RadioChannelGroup { get; set; }
+
+        /// <summary>
+        /// The genre mappings, to map localised MP genres, to Emby categories.
         /// </summary>
         public SerializableDictionary<String, List<String>> GenreMappings { get; set; }
-
-        /// <summary>
-        /// The default ordering of channels
-        /// </summary>
-        public ChannelSorting DefaultChannelSortOrder { get; set; }
-
-        /// <summary>
-        /// Enable channel index
-        /// </summary>
-        public bool ChannelByIndex { get; set; }
 
         /// <summary>
         /// Enable program images
         /// </summary>
         public bool ProgramImages { get; set; }
+
+        /// <summary>
+        /// Enables streaming probing for live tv
+        /// </summary>
+        public bool EnableProbing { get; set; }
+
+        /// <summary>
+        /// Enable RTSP streaming for live tv
+        /// </summary>
+        public bool RtspStreaming { get; set; }
 
         /// <summary>
         /// The name of the MPExtended profile to use for streaming
@@ -88,6 +94,16 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         /// Delay reading of the stream in ms
         /// </summary>
         public Int32? StreamDelay { get; set; }
+
+        /// <summary>
+        /// Enable import of MediaPortal recordings
+        /// </summary>
+        public bool EnableRecordingImport { get; set; }
+
+        /// <summary>
+        /// Enable TMDB online lookup for recording posters
+        /// </summary>
+        public bool EnableTmdbLookup { get; set; }
 
         /// <summary>
         /// Enable direct access to recordings
@@ -124,6 +140,21 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         /// </summary>
         public bool WeeklyEveryTimeOnThisChannel { get; set; }
 
+        /// <summary>
+        /// Skips timers if item is already in Emby library
+        /// </summary>
+        public bool SkipAlreadyInLibrary { get; set; }
+
+        /// <summary>
+        /// Skips timers method for items already in Emby library
+        /// </summary>
+        public String SkipAlreadyInLibraryProfile { get; set; }
+
+        /// <summary>
+        /// Autocreates timers based on missing episodes in Emby library
+        /// </summary>
+        public bool AutoCreateTimers { get; set; }
+
         public String SeriesTimerType()
         {
             if (EveryTimeOnThisChannel && !EveryTimeOnEveryChannel && !WeeklyEveryTimeOnThisChannel)
@@ -142,9 +173,9 @@ namespace MediaBrowser.Plugins.MediaPortal.Configuration
         public Int32 PreviewThumbnailOffsetMinutes { get; set; }
 
         /// <summary>
-        /// Enable one time schedules caching
+        /// Enable custom image processing
         /// </summary>
-        public bool EnableTimerCache { get; set; }
+        public bool EnableImageProcessing { get; set; }
 
         /// <summary>
         /// Enable additional logging

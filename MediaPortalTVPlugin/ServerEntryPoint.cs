@@ -89,7 +89,6 @@ namespace MediaBrowser.Plugins.MediaPortal
         /// <returns></returns>
         public async Task LoadRegistrationInfoAsync()
         {
-            //Plugin.Instance.Registration = await PluginSecurityManager.GetRegistrationStatus("MediaBrowser.Plugins.MediaPortal", "[**MB2CompatibleFeature**]").ConfigureAwait(false);
         }
     }
 }
