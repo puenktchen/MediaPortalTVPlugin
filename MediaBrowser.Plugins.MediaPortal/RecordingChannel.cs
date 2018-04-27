@@ -176,7 +176,14 @@ namespace MediaBrowser.Plugins.MediaPortal
         {
             if (string.IsNullOrWhiteSpace(query.FolderId))
             {
-                return GetRecordingGroups(query, cancellationToken);
+                var recordingGroups = GetRecordingGroups(query, cancellationToken);
+
+                if (recordingGroups.Result.TotalRecordCount == null)
+                {
+                    return GetRecordingNameGroups(query, i => !i.IsSports && !i.IsNews && !i.IsMovie && !i.IsKids && !i.IsSeries, cancellationToken);
+                }
+
+                return recordingGroups;
             }
 
             if (string.Equals(query.FolderId, "tvshows", StringComparison.OrdinalIgnoreCase))
@@ -281,11 +288,11 @@ namespace MediaBrowser.Plugins.MediaPortal
                 Items = new List<ChannelItemInfo>(),
             };
 
-            var latest = allRecordings.OrderByDescending(i => i.StartDate).Take(10);
-            if (latest != null)
-            {
-                result.Items.AddRange(latest.Select(ConvertToChannelItem));
-            }
+            //var latest = allRecordings.OrderByDescending(i => i.StartDate).Take(10);
+            //if (latest != null)
+            //{
+            //    result.Items.AddRange(latest.Select(ConvertToChannelItem));
+            //}
 
             var series = allRecordings.FirstOrDefault(i => i.IsSeries);
             if (series != null)
@@ -296,8 +303,6 @@ namespace MediaBrowser.Plugins.MediaPortal
                     FolderType = ChannelFolderType.Container,
                     Id = "tvshows",
                     Type = ChannelItemType.Folder,
-                    DateCreated = DateTime.ParseExact("1908", "yyyy", CultureInfo.InvariantCulture),
-                    DateModified = DateTime.ParseExact("1908", "yyyy", CultureInfo.InvariantCulture),
                     ImageUrl = ChannelFolderImage("TV Shows")
                 });
             }
@@ -311,8 +316,6 @@ namespace MediaBrowser.Plugins.MediaPortal
                     FolderType = ChannelFolderType.Container,
                     Id = "movies",
                     Type = ChannelItemType.Folder,
-                    DateCreated = DateTime.ParseExact("1907", "yyyy", CultureInfo.InvariantCulture),
-                    DateModified = DateTime.ParseExact("1907", "yyyy", CultureInfo.InvariantCulture),
                     ImageUrl = ChannelFolderImage("Movies")
                 });
             }
@@ -326,8 +329,6 @@ namespace MediaBrowser.Plugins.MediaPortal
                     FolderType = ChannelFolderType.Container,
                     Id = "kids",
                     Type = ChannelItemType.Folder,
-                    DateCreated = DateTime.ParseExact("1906", "yyyy", CultureInfo.InvariantCulture),
-                    DateModified = DateTime.ParseExact("1906", "yyyy", CultureInfo.InvariantCulture),
                     ImageUrl = ChannelFolderImage("Kids")
                 });
             }
@@ -341,8 +342,6 @@ namespace MediaBrowser.Plugins.MediaPortal
                     FolderType = ChannelFolderType.Container,
                     Id = "news",
                     Type = ChannelItemType.Folder,
-                    DateCreated = DateTime.ParseExact("1905", "yyyy", CultureInfo.InvariantCulture),
-                    DateModified = DateTime.ParseExact("1905", "yyyy", CultureInfo.InvariantCulture),
                     ImageUrl = ChannelFolderImage("News & Documentary")
                 });
             }
@@ -356,8 +355,6 @@ namespace MediaBrowser.Plugins.MediaPortal
                     FolderType = ChannelFolderType.Container,
                     Id = "sports",
                     Type = ChannelItemType.Folder,
-                    DateCreated = DateTime.ParseExact("1904", "yyyy", CultureInfo.InvariantCulture),
-                    DateModified = DateTime.ParseExact("1904", "yyyy", CultureInfo.InvariantCulture),
                     ImageUrl = ChannelFolderImage("Sports")
                 });
             }
@@ -371,14 +368,12 @@ namespace MediaBrowser.Plugins.MediaPortal
                     FolderType = ChannelFolderType.Container,
                     Id = "live",
                     Type = ChannelItemType.Folder,
-                    DateCreated = DateTime.ParseExact("1903", "yyyy", CultureInfo.InvariantCulture),
-                    DateModified = DateTime.ParseExact("1903", "yyyy", CultureInfo.InvariantCulture),
                     ImageUrl = ChannelFolderImage("Live Shows")
                 });
             }
 
             var other = allRecordings.FirstOrDefault(i => !i.IsSports && !i.IsNews && !i.IsMovie && !i.IsKids && !i.IsSeries);
-            if (other != null)
+            if (other != null && result.TotalRecordCount == null)
             {
                 result.Items.Add(new ChannelItemInfo
                 {
@@ -386,8 +381,6 @@ namespace MediaBrowser.Plugins.MediaPortal
                     FolderType = ChannelFolderType.Container,
                     Id = "others",
                     Type = ChannelItemType.Folder,
-                    DateCreated = DateTime.ParseExact("1902", "yyyy", CultureInfo.InvariantCulture),
-                    DateModified = DateTime.ParseExact("1902", "yyyy", CultureInfo.InvariantCulture),
                     ImageUrl = ChannelFolderImage("Other Shows")
                 });
             }
