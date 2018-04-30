@@ -243,7 +243,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     return null;
                 }
 
-                if (Configuration.EnableImageProcessing)
+                if (Configuration.EnableImageProcessing && Type.GetType("Mono.Runtime") == null)
                 {
                     ImageHelper.CreateLandscapeImage(localImagePath, localLandscapePath);
                     ImageHelper.CreatePosterImage(localImagePath, localPosterPath);
