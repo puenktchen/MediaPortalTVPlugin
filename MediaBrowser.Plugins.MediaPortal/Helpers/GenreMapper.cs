@@ -99,11 +99,17 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
                     program.IsKids = _kidsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
                     program.IsLive = _liveGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
                     program.IsSeries = _seriesGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    if (program.IsSeries)
+                    {
+                        program.IsPremiere = true;
+                    }
+                    if (program.IsSports || program.IsNews || program.IsKids || program.IsLive)
+                    {
+                        program.IsSeries = true;
+                    }
                     if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)))
                     {
                         program.IsSeries = true;
-                        program.IsPremiere = false;
-                        program.IsRepeat = true;
                     }
                 }
             }

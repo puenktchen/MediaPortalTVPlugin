@@ -117,7 +117,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 var program = new ProgramInfo()
                 {
                     Name = p.Title,
-                    EpisodeTitle = p.EpisodeName,
                     Id = p.Id.ToString(CultureInfo.InvariantCulture),
                     SeriesId = p.Title,
                     ChannelId = channelId,
@@ -126,6 +125,25 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     Overview = p.Description,
                     Genres = new List<String>(),
                 };
+
+                //program.IsSeries = true; //is set by genreMapper
+                if (!String.IsNullOrEmpty(p.Genre))
+                {
+                    program.Genres.Add(p.Genre);
+                    genreMapper.PopulateProgramGenres(program);
+                }
+
+                if (program.IsSeries && p.Title != p.EpisodeName)
+                {
+                    program.EpisodeTitle = p.EpisodeName;
+                }
+
+                if (!String.IsNullOrEmpty(Regex.Match(p.Title, @"(?<=\()\d{4}(?=\)$)").Value))
+                {
+                    int year;
+                    Int32.TryParse((Regex.Match(p.Title, @"(?<=\()\d{4}(?=\)$)").Value), out year);
+                    program.ProductionYear = year;
+                }
 
                 if (!String.IsNullOrEmpty(p.EpisodeNum))
                 {
@@ -139,20 +157,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     int snumber;
                     Int32.TryParse((Regex.Match(p.SeriesNum, @"\d+").Value), out snumber);
                     program.SeasonNumber = snumber;
-                }
-
-                //program.IsSeries = true; //is set by genreMapper
-                if (!String.IsNullOrEmpty(p.Genre))
-                {
-                    program.Genres.Add(p.Genre);
-                    genreMapper.PopulateProgramGenres(program);
-                }
-
-                if (!String.IsNullOrEmpty(Regex.Match(p.Title, @"(?<=\()\d{4}(?=\)$)").Value))
-                {
-                    int year;
-                    Int32.TryParse((Regex.Match(p.Title, @"(?<=\()\d{4}(?=\)$)").Value), out year);
-                    program.ProductionYear = year;
                 }
 
                 if (Configuration.ProgramImages)

@@ -178,7 +178,7 @@ namespace MediaBrowser.Plugins.MediaPortal
             {
                 var recordingGroups = GetRecordingGroups(query, cancellationToken);
 
-                if (recordingGroups.Result.TotalRecordCount == null)
+                if (recordingGroups.Result.Items.Count == 0)
                 {
                     return GetRecordingNameGroups(query, i => !i.IsSports && !i.IsNews && !i.IsMovie && !i.IsKids && !i.IsSeries, cancellationToken);
                 }
@@ -373,7 +373,7 @@ namespace MediaBrowser.Plugins.MediaPortal
             }
 
             var other = allRecordings.FirstOrDefault(i => !i.IsSports && !i.IsNews && !i.IsMovie && !i.IsKids && !i.IsSeries);
-            if (other != null && result.TotalRecordCount == null)
+            if (other != null && result.Items.Count > 0)
             {
                 result.Items.Add(new ChannelItemInfo
                 {
