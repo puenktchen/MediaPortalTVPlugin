@@ -117,6 +117,9 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 var program = new ProgramInfo()
                 {
                     Name = p.Title,
+                    EpisodeNumber = p.EpisodeNumber,
+                    SeasonNumber = p.SeasonNumber,
+                    ProductionYear = p.ProductionYear,
                     Id = p.Id.ToString(CultureInfo.InvariantCulture),
                     SeriesId = p.Title,
                     ChannelId = channelId,
@@ -136,27 +139,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 if (program.IsSeries && p.Title != p.EpisodeName)
                 {
                     program.EpisodeTitle = p.EpisodeName;
-                }
-
-                if (!String.IsNullOrEmpty(Regex.Match(p.Title, @"(?<=\()\d{4}(?=\)$)").Value))
-                {
-                    int year;
-                    Int32.TryParse((Regex.Match(p.Title, @"(?<=\()\d{4}(?=\)$)").Value), out year);
-                    program.ProductionYear = year;
-                }
-
-                if (!String.IsNullOrEmpty(p.EpisodeNum))
-                {
-                    int enumber;
-                    Int32.TryParse((Regex.Match(p.EpisodeNum, @"\d+").Value), out enumber);
-                    program.EpisodeNumber = enumber;
-                }
-
-                if (!String.IsNullOrEmpty(p.SeriesNum))
-                {
-                    int snumber;
-                    Int32.TryParse((Regex.Match(p.SeriesNum, @"\d+").Value), out snumber);
-                    program.SeasonNumber = snumber;
                 }
 
                 if (Configuration.ProgramImages)
@@ -195,9 +177,12 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 var recording = new MyRecordingInfo()
                 {
                     Id = r.Id,
-                    Name = Regex.Replace(r.Title, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty),
-                    EpisodeTitle = Regex.Replace(r.EpisodeName, @"(^[s]?[0-9]*[e|x|\.][0-9]*[^\w]+)|(\s[\(]?[s]?[0-9]*[e|x|\.][0-9]*[\)]?$)", String.Empty, RegexOptions.IgnoreCase),
+                    Name = r.Title,
+                    EpisodeTitle = r.EpisodeName,
+                    EpisodeNumber = r.EpisodeNumber,
+                    SeasonNumber = r.SeasonNumber,
                     Overview = r.Description,
+                    Year = r.Year,
                     Genres = new List<String>(),
                     TimerId = r.ScheduleId.ToString(CultureInfo.InvariantCulture),
                     ChannelId = r.ChannelId.ToString(CultureInfo.InvariantCulture),
@@ -216,30 +201,9 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     genreMapper.PopulateRecordingGenres(recording);
                 }
 
-                if (!String.IsNullOrEmpty(Regex.Match(r.Title, @"(?<=\()\d{4}(?=\)$)").Value))
+                if (recording.IsMovie)
                 {
-                    if (recording.IsMovie)
-                    {
-                        recording.Name = Regex.Replace(r.Title, @"(?<=\S)\s\W\d{4}\W(?=$)", String.Empty);
-                    }
-
-                    int year;
-                    Int32.TryParse((Regex.Match(r.Title, @"(?<=\()\d{4}(?=\)$)").Value), out year);
-                    recording.Year = year;
-                }
-
-                if (!String.IsNullOrEmpty(r.EpisodeNum))
-                {
-                    int episodeNumber;
-                    Int32.TryParse((Regex.Match(r.EpisodeNum, @"\d+").Value), out episodeNumber);
-                    recording.EpisodeNumber = episodeNumber;
-                }
-
-                if (!String.IsNullOrEmpty(r.SeriesNum))
-                {
-                    int seasonNumber;
-                    Int32.TryParse((Regex.Match(r.SeriesNum, @"\d+").Value), out seasonNumber);
-                    recording.SeasonNumber = seasonNumber;
+                    recording.Name = r.MovieName;
                 }
 
                 if (r.IsRecording)
@@ -354,24 +318,12 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 {
                     timerInfo.ProgramId = program.Id.ToString(CultureInfo.InvariantCulture);
                     timerInfo.Name = (!String.IsNullOrEmpty(program.EpisodeNum)) ? program.Title + " - " + program.EpisodeName : program.Title;
-                    timerInfo.EpisodeTitle = Regex.Replace(program.EpisodeName, @"(^[s]?[0-9]*[e|x|\.][0-9]*[^\w]+)|(\s[\(]?[s]?[0-9]*[e|x|\.][0-9]*[\)]?$)", String.Empty, RegexOptions.IgnoreCase);
+                    timerInfo.EpisodeTitle = program.EpisodeName;
+                    timerInfo.EpisodeNumber = program.EpisodeNumber;
+                    timerInfo.SeasonNumber = program.SeasonNumber;
                     timerInfo.Overview = program.Description;
                     timerInfo.Genres = new List<String>();
                     timerInfo.Status = (program.HasConflict) ? RecordingStatus.ConflictedNotOk : timerInfo.Status;
-
-                    if (!String.IsNullOrEmpty(program.EpisodeNum))
-                    {
-                        int enumber;
-                        Int32.TryParse((Regex.Match(program.EpisodeNum, @"\d+").Value), out enumber);
-                        timerInfo.EpisodeNumber = enumber;
-                    }
-
-                    if (!String.IsNullOrEmpty(program.SeriesNum))
-                    {
-                        int snumber;
-                        Int32.TryParse((Regex.Match(program.SeriesNum, @"\d+").Value), out snumber);
-                        timerInfo.SeasonNumber = snumber;
-                    }
 
                     //timerInfo.IsProgramSeries = true; //is set by genreMapper
                     if (!String.IsNullOrEmpty(program.Genre))
@@ -398,15 +350,14 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 foreach (var program in programResponse.Where(p => (p.IsRecordingSeriesPending || p.IsPartialRecordingSeriesPending || p.IsRecordingSeriesCanceled || p.IsScheduled) && !(p.IsRecordingOnce || p.IsRecordingOncePending)))
                 {
                     var timerInfo = new TimerInfo();
-                    timerInfo.Name = (program.IsRecordingSeriesCanceled && !String.IsNullOrEmpty(program.EpisodeNum)) ? program.Title + " - " + program.EpisodeName + " [Cancelled]" :
-                                     (program.HasConflict && !String.IsNullOrEmpty(program.EpisodeNum)) ? program.Title + " - " + program.EpisodeName + " [Conflict]" :
-                                     (!String.IsNullOrEmpty(program.EpisodeNum)) ? program.Title + " - " + program.EpisodeName :
-                                     program.Title;
+                    timerInfo.Name = (!String.IsNullOrEmpty(program.EpisodeNum)) ? program.Title + " - " + program.EpisodeName : program.Title;
                     timerInfo.Id = program.Id.ToString(CultureInfo.InvariantCulture);
                     timerInfo.SeriesTimerId = schedule.Id.ToString(CultureInfo.InvariantCulture);
                     timerInfo.ProgramId = program.Id.ToString(CultureInfo.InvariantCulture);
                     timerInfo.ChannelId = program.ChannelId.ToString(CultureInfo.InvariantCulture);
                     timerInfo.EpisodeTitle = program.EpisodeName;
+                    timerInfo.EpisodeNumber = program.EpisodeNumber;
+                    timerInfo.SeasonNumber = program.SeasonNumber;
                     timerInfo.Overview = program.Description;
                     timerInfo.StartDate = program.StartTime;
                     timerInfo.EndDate = program.EndTime;
@@ -417,20 +368,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     timerInfo.Status = (program.IsRecordingSeriesCanceled) ? RecordingStatus.Cancelled :
                                        (program.HasConflict) ? RecordingStatus.ConflictedNotOk :
                                        RecordingStatus.New;
-
-                    if (!String.IsNullOrEmpty(program.EpisodeNum))
-                    {
-                        int enumber;
-                        Int32.TryParse((Regex.Match(program.EpisodeNum, @"\d+").Value), out enumber);
-                        timerInfo.EpisodeNumber = enumber;
-                    }
-
-                    if (!String.IsNullOrEmpty(program.SeriesNum))
-                    {
-                        int snumber;
-                        Int32.TryParse((Regex.Match(program.SeriesNum, @"\d+").Value), out snumber);
-                        timerInfo.SeasonNumber = snumber;
-                    }
 
                     Plugin.Logger.Info("Seriespart schedule: \"{0}\"; Channel: {1}; Start Time: {2}; End Time: {3}; Status: {4}", program.Title, program.ChannelId, program.StartTime, program.EndTime, timerInfo.Status.ToString());
 

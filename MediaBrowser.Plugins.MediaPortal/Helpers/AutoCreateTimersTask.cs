@@ -78,12 +78,15 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
 
             foreach (var program in programs.SelectMany(x => x.Programs))
             {
-                foreach (var episode in missingEpisodes.Where(x =>
-                    x.Parent.Parent.Name.Contains(Regex.Replace(program.Title, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty)) &&
-                    x.IndexNumber.Equals(Convert.ToInt32(program.EpisodeNum)) &&
-                    x.ParentIndexNumber.Equals(Convert.ToInt32(program.SeriesNum))))
+                if (!String.IsNullOrEmpty(program.Title))
                 {
-                    CreateTimer(program, cancellationToken);
+                    foreach (var episode in missingEpisodes.Where(x =>
+                    x.Parent.Parent.Name.Contains(Regex.Replace(program.Title, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty)) &&
+                    x.IndexNumber.Equals(program.EpisodeNumber) &&
+                    x.ParentIndexNumber.Equals(program.SeasonNumber)))
+                    {
+                        CreateTimer(program, cancellationToken);
+                    }
                 }
             }
 
