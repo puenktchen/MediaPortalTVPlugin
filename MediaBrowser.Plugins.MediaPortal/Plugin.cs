@@ -15,13 +15,15 @@ using MediaBrowser.Plugins.MediaPortal.Configuration;
 using MediaBrowser.Plugins.MediaPortal.Helpers;
 using MediaBrowser.Plugins.MediaPortal.Interfaces;
 using MediaBrowser.Plugins.MediaPortal.Services.Proxies;
+using System.IO;
+using MediaBrowser.Model.Drawing;
 
 namespace MediaBrowser.Plugins.MediaPortal
 {
     /// <summary>
     /// Class Plugin
     /// </summary>
-    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages, IHasThumbImage
     {
         public static TvServiceProxy TvProxy { get; private set; }
         public static StreamingServiceProxy StreamingProxy { get; private set; }
@@ -38,7 +40,7 @@ namespace MediaBrowser.Plugins.MediaPortal
         /// <param name="networkManager">The network manager.</param>
         /// <param name="logger">The logger.</param>
         public Plugin(
-            IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IHttpClient httpClient, 
+            IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IHttpClient httpClient,
             IJsonSerializer jsonSerializer, INetworkManager networkManager, ILogger logger, TmdbLookup tmdbLookup)
             : base(applicationPaths, xmlSerializer)
         {
@@ -72,7 +74,21 @@ namespace MediaBrowser.Plugins.MediaPortal
             }
         }
 
-	private Guid _id = new Guid("2c6a0219-7621-4b06-8a64-da3f7038b649");
+        public Stream GetThumbImage()
+        {
+            var type = GetType();
+            return type.Assembly.GetManifestResourceStream(type.Namespace + ".thumb.png");
+        }
+
+        public ImageFormat ThumbImageFormat
+        {
+            get
+            {
+                return ImageFormat.Png;
+            }
+        }
+
+        private Guid _id = new Guid("2c6a0219-7621-4b06-8a64-da3f7038b649");
         public override Guid Id
         {
             get { return _id; }
@@ -103,15 +119,15 @@ namespace MediaBrowser.Plugins.MediaPortal
         }
 
         public IEnumerable<PluginPageInfo> GetPages()
-        {  
-            return new[]  
-            {  
-                new PluginPageInfo  
-                {  
-                    Name = "MediaPortal",  
-                    EmbeddedResourcePath = "MediaBrowser.Plugins.MediaPortal.Configuration.configPage.html"  
-                }  
-            };  
-        }  
+        {
+            return new[]
+            {
+                new PluginPageInfo
+                {
+                    Name = "MediaPortal",
+                    EmbeddedResourcePath = "MediaBrowser.Plugins.MediaPortal.Configuration.configPage.html"
+                }
+            };
+        }
     }
 }

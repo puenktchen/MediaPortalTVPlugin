@@ -73,15 +73,15 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
                 cancellationToken,
                 "GetProgramsDetailedForGroup?groupId={0}&startTime={1}&endTime={2}",
                 Configuration.TvChannelGroup,
-                DateTime.Now.ToLocalTime().ToUrlDate(),
-                DateTime.Now.ToLocalTime().AddHours(25).ToUrlDate());
+                DateTimeOffset.Now.ToLocalTime().ToUrlDate(),
+                DateTimeOffset.Now.ToLocalTime().AddHours(25).ToUrlDate());
 
             foreach (var program in programs.SelectMany(x => x.Programs))
             {
                 if (!String.IsNullOrEmpty(program.Title))
                 {
                     foreach (var episode in missingEpisodes.Where(x =>
-                    x.Parent.Parent.Name.Contains(Regex.Replace(program.Title, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty)) &&
+                    x.Parent.Parent.Name.StartsWith(Regex.Replace(program.Title, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty)) &&
                     x.IndexNumber.Equals(program.EpisodeNumber) &&
                     x.ParentIndexNumber.Equals(program.SeasonNumber)))
                     {

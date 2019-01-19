@@ -99,7 +99,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             return GetFromService<Program>(cancellationToken, "GetProgramDetailedById?programId={0}", programId);
         }
 
-        public IEnumerable<ProgramInfo> GetPrograms(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
+        public IEnumerable<ProgramInfo> GetPrograms(string channelId, DateTimeOffset startDateUtc, DateTimeOffset endDateUtc, CancellationToken cancellationToken)
         {
             var pluginPath = Plugin.Instance.ConfigurationFilePath.Remove(Plugin.Instance.ConfigurationFilePath.Length - 4);
             var response = GetFromService<List<Program>>(
@@ -308,8 +308,8 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 timerInfo.IsPostPaddingRequired = (schedule.PostRecordInterval > 0);
                 timerInfo.PrePaddingSeconds = schedule.PreRecordInterval * 60;
                 timerInfo.PostPaddingSeconds = schedule.PostRecordInterval * 60;
-                timerInfo.Status = (((schedule.StartTime - TimeSpan.FromMinutes(schedule.PreRecordInterval) < DateTime.UtcNow)))
-                                   && (DateTime.UtcNow < (schedule.EndTime + TimeSpan.FromMinutes(schedule.PostRecordInterval)))
+                timerInfo.Status = (((schedule.StartTime - TimeSpan.FromMinutes(schedule.PreRecordInterval) < DateTimeOffset.UtcNow)))
+                                   && (DateTimeOffset.UtcNow < (schedule.EndTime + TimeSpan.FromMinutes(schedule.PostRecordInterval)))
                                    ? RecordingStatus.InProgress : RecordingStatus.New;
 
                 var programResponse = GetFromService<List<Program>>(cancellationToken, "SearchProgramsDetailed?searchTerm={0}", schedule.Title);
@@ -322,15 +322,17 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     timerInfo.EpisodeNumber = program.EpisodeNumber;
                     timerInfo.SeasonNumber = program.SeasonNumber;
                     timerInfo.Overview = program.Description;
-                    timerInfo.Genres = new List<String>();
+                    var genres = new List<String>();
                     timerInfo.Status = (program.HasConflict) ? RecordingStatus.ConflictedNotOk : timerInfo.Status;
 
                     //timerInfo.IsProgramSeries = true; //is set by genreMapper
                     if (!String.IsNullOrEmpty(program.Genre))
                     {
-                        timerInfo.Genres.Add(program.Genre);
+                        genres.Add(program.Genre);
                         genreMapper.PopulateTimerGenres(timerInfo);
                     }
+
+                    timerInfo.Genres = genres.ToArray();
 
                     Plugin.Logger.Info("One time schedule: \"{0}\"; Channel: {1}; Start Time: {2}; End Time: {3}; Status: {4}", schedule.Title, schedule.ChannelId, schedule.StartTime, schedule.EndTime, timerInfo.Status.ToString());
                 }
@@ -720,8 +722,8 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 var schedule = GetSchedule(cancellationToken, scheduleId);
                 if (schedule != null)
                 {
-                    if (((schedule.StartTime - TimeSpan.FromMinutes(schedule.PreRecordInterval)) < DateTime.UtcNow)
-                        && (DateTime.UtcNow < (schedule.EndTime + TimeSpan.FromMinutes(schedule.PostRecordInterval)))
+                    if (((schedule.StartTime - TimeSpan.FromMinutes(schedule.PreRecordInterval)) < DateTimeOffset.UtcNow)
+                        && (DateTimeOffset.UtcNow < (schedule.EndTime + TimeSpan.FromMinutes(schedule.PostRecordInterval)))
                         && (schedule.ScheduleType == 0))
                     {
                         string scheduledProgram = GetFromService<List<ScheduledRecording>>(cancellationToken, "GetScheduledRecordingsForDate?date={0}", schedule.StartTime.ToLocalTime().Date).Where(s => s.ScheduleId == scheduleId).Select(s => s.ProgramId).FirstOrDefault().ToString();

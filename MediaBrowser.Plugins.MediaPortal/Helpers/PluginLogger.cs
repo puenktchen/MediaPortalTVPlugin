@@ -80,5 +80,30 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
         {
             _logger.Warn("[MP TV Plugin] - {0}", String.Format(message, paramList));
         }
+
+        public void Log(LogSeverity severity, ReadOnlyMemory<char> message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Error(ReadOnlyMemory<char> message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Warn(ReadOnlyMemory<char> message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Info(ReadOnlyMemory<char> message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Debug(ReadOnlyMemory<char> message)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

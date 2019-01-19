@@ -5,15 +5,21 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
 {
     public class Program
     {
-        public int ChannelId { get; set; }
-        public string Description { get; set; }
-        public int DurationInMinutes { get; set; }
-        public DateTime EndTime { get; set; }
+        #region General Informations
+
         public int Id { get; set; }
-        public bool IsScheduled { get; set; }
-        public DateTime StartTime { get; set; }
+        public int ChannelId { get; set; }
         public string Title { get; set; }
+        public string Description { get; set; }
+        public string Genre { get; set; }
+        public int ParentalRating { get; set; }
         public string Classification { get; set; }
+        public int StarRating { get; set; }
+        public int DurationInMinutes { get; set; }
+
+        #endregion
+
+        #region Series Informations
 
         private string episodeName;
         public string EpisodeName
@@ -50,36 +56,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         }
 
         public string EpisodePart { get; set; }
-        public string Genre { get; set; }
-        public bool HasConflict { get; set; }
-        public bool IsChanged { get; set; }
-        public bool IsPartialRecordingSeriesPending { get; set; }
-        public bool IsRecording { get; set; }
-        public bool IsRecordingManual { get; set; }
-        public bool IsRecordingOnce { get; set; }
-        public bool IsRecordingOncePending { get; set; }
-        public bool IsRecordingSeries { get; set; }
-        public bool IsRecordingSeriesPending { get; set; }
-        public bool IsRecordingSeriesCanceled { get; set; }
-        public bool Notify { get; set; }
-        public DateTime OriginalAirDate { get; set; }
-        public int ParentalRating { get; set; }
-
-        public int? ProductionYear
-        {
-            get
-            {
-                if (!String.IsNullOrEmpty(Title))
-                {
-                    int year;
-                    if (Int32.TryParse((Regex.Match(Title, @"(?<=\()\d{4}(?=\)$)").Value), out year))
-                    {
-                        return year;
-                    }
-                }
-                return null;
-            }
-        }
 
         public string SeriesNum { get; set; }
         public int? SeasonNumber
@@ -98,6 +74,82 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
             }
         }
 
-        public int StarRating { get; set; }
+        #endregion
+
+        #region Timer Informations
+
+        public bool HasConflict { get; set; }
+        public bool IsChanged { get; set; }
+        public bool IsPartialRecordingSeriesPending { get; set; }
+        public bool IsRecording { get; set; }
+        public bool IsRecordingManual { get; set; }
+        public bool IsRecordingOnce { get; set; }
+        public bool IsRecordingOncePending { get; set; }
+        public bool IsRecordingSeries { get; set; }
+        public bool IsRecordingSeriesPending { get; set; }
+        public bool IsRecordingSeriesCanceled { get; set; }
+        public bool IsScheduled { get; set; }
+        public bool Notify { get; set; }
+
+        #endregion
+
+        #region DateTime Informations
+
+        private DateTime startTime;
+        public DateTimeOffset StartTime
+        {
+            get
+            {
+                return DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            }
+            set
+            {
+                startTime = value.DateTime;
+            }
+        }
+
+        private DateTime endTime;
+        public DateTimeOffset EndTime
+        {
+            get
+            {
+                return DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            }
+            set
+            {
+                endTime = value.DateTime;
+            }
+        }
+
+        private DateTime originalAirDate;
+        public DateTimeOffset OriginalAirDate
+        {
+            get
+            {
+                return DateTime.SpecifyKind(originalAirDate, DateTimeKind.Utc);
+            }
+            set
+            {
+                originalAirDate = value.DateTime;
+            }
+        }
+
+        public int? ProductionYear
+        {
+            get
+            {
+                if (!String.IsNullOrEmpty(Title))
+                {
+                    int year;
+                    if (Int32.TryParse((Regex.Match(Title, @"(?<=\()\d{4}(?=\)$)").Value), out year))
+                    {
+                        return year;
+                    }
+                }
+                return null;
+            }
+        }
+
+        #endregion
     }
 }

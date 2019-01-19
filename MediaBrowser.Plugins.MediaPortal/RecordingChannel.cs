@@ -82,7 +82,7 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public string GetCacheKey(string userId)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
             var values = new List<string>();
 

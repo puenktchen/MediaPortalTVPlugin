@@ -12,7 +12,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         public bool GrabEPG { get; set; }
         public int Id { get; set; }
         public bool IsChanged { get; set; }
-        public DateTime LastEpgGrab { get; set; }
+        public DateTimeOffset LastEpgGrab { get; set; }
         public string Name { get; set; }
         public int NetProvider { get; set; }
         public bool PreloadCard { get; set; }

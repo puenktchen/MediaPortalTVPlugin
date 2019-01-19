@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net46;</TargetFrameworks>
-    <AssemblyVersion>1.8.2.0</AssemblyVersion>
-    <FileVersion>1.8.2.0</FileVersion>
+    <TargetFrameworks>netstandard2.0;</TargetFrameworks>
+    <AssemblyVersion>1.8.9.0</AssemblyVersion>
+    <FileVersion>1.8.9.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +16,7 @@
     <None Remove="Images\Other Shows-thumb.png" />
     <None Remove="Images\Sports-thumb.png" />
     <None Remove="Images\TV Shows-thumb.png" />
+    <None Remove="thumb.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,10 +29,12 @@
     <EmbeddedResource Include="Images\Other Shows-thumb.png" />
     <EmbeddedResource Include="Images\Sports-thumb.png" />
     <EmbeddedResource Include="Images\TV Shows-thumb.png" />
+    <EmbeddedResource Include="thumb.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="3.3.36-beta" />
+    <PackageReference Include="mediabrowser.server.core" Version="4.0.0.2" />
+    <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup>

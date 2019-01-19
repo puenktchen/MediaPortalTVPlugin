@@ -16,10 +16,10 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         public bool GrabEpg { get; set; }
         public List<string> GroupNames { get; set; }
         public bool IsChanged { get; set; }
-        public DateTime LastGrabTime { get; set; }
+        public DateTimeOffset LastGrabTime { get; set; }
         public Program NextProgram { get; set; }
         public int TimesWatched { get; set; }
-        public DateTime TotalTimeWatched { get; set; }
+        public DateTimeOffset TotalTimeWatched { get; set; }
         public bool VisibleInGuide { get; set; }
     }
 }

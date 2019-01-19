@@ -96,7 +96,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                 Plugin.Logger.Info("Streaming setting StreamingProfileName: {0}", Configuration.StreamingProfileName);
                 Plugin.Logger.Info("Streaming Media Type: {0}; Streaming item ID: {1}", WebMediaType.Recording, recordingId);
 
-                var identifier = WebUtility.UrlEncode(String.Format("{0}-{1}-{2:yyyyMMddHHmmss}", WebMediaType.Recording, recordingId, DateTime.UtcNow));
+                var identifier = WebUtility.UrlEncode(String.Format("{0}-{1}-{2:yyyyMMddHHmmss}", WebMediaType.Recording, recordingId, DateTimeOffset.UtcNow));
 
                 return GetUrl(_streamingEndpoint, "DoStream?type={0}&itemId={1}&profileName={2}&startPosition=0&idleTimeout=5&identifier={3}",
                             WebMediaType.Recording,
@@ -118,7 +118,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             Plugin.Logger.Info("Streaming setting StreamDelay: {0}", Configuration.StreamDelay);
             Plugin.Logger.Info("Streaming Media Type: {0}; Streaming item ID: {1}", WebMediaType.TV, channelId);
 
-            var identifier = WebUtility.UrlEncode(String.Format("{0}-{1}-{2:yyyyMMddHHmmss}", WebMediaType.TV, channelId, DateTime.UtcNow));
+            var identifier = WebUtility.UrlEncode(String.Format("{0}-{1}-{2:yyyyMMddHHmmss}", WebMediaType.TV, channelId, DateTimeOffset.UtcNow));
             var profile = WebUtility.UrlEncode(GetTranscoderProfile(cancellationToken, Configuration.StreamingProfileName).Name);
 
             var streamingDetails = new StreamingDetails()

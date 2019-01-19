@@ -90,7 +90,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
 
                 if (Plugin.Instance.Configuration.SkipAlreadyInLibraryProfile == "Season and Episode Numbers" && timer.EpisodeNumber.HasValue && timer.SeasonNumber.HasValue)
                 {
-                    var seriesIds = _libraryManager.GetItemIds(new InternalItemsQuery
+                    var seriesIds = _libraryManager.GetInternalItemIds(new InternalItemsQuery
                     {
                         IncludeItemTypes = new[] { typeof(Series).Name },
                         Name = seriesName
@@ -112,7 +112,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
                         Limit = 1
                     });
 
-                    if (episode.Count > 0)
+                    if (episode.Length > 0)
                     {
                         return true;
                     }
@@ -120,10 +120,10 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
 
                 if (Plugin.Instance.Configuration.SkipAlreadyInLibraryProfile == "Episode Name" && !string.IsNullOrWhiteSpace(timer.EpisodeTitle))
                 {
-                    var seriesIds = _libraryManager.GetItemIds(new InternalItemsQuery
+                    var seriesIds = _libraryManager.GetInternalItemIds(new InternalItemsQuery
                     {
                         IncludeItemTypes = new[] { typeof(Series).Name },
-                        NameContains = seriesName
+                        Name = seriesName
 
                     }).ToArray();
 
@@ -135,13 +135,13 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
                     var episodename = _libraryManager.GetItemIds(new InternalItemsQuery
                     {
                         IncludeItemTypes = new[] { typeof(Episode).Name },
-                        NameContains = episodeName,
+                        Name = episodeName,
                         AncestorIds = seriesIds,
                         IsVirtualItem = false,
                         Limit = 1
                     });
 
-                    if (episodename.Count > 0)
+                    if (episodename.Length > 0)
                     {
                         return true;
                     }
@@ -152,7 +152,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
                     var movie = _libraryManager.GetItemIds(new InternalItemsQuery
                     {
                         IncludeItemTypes = new[] { typeof(Movie).Name },
-                        NameContains = movieName
+                        Name = movieName
 
                     }).Select(i => i.ToString("N")).ToArray();
 

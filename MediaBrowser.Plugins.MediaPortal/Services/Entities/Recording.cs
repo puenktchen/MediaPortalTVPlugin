@@ -5,10 +5,67 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
 {
     public class Recording
     {
+        #region General Informations
+
+        public string Id { get; set; }
+        public int ScheduleId { get; set; }
+        public string FileName { get; set; }
+
+        private string title;
+        public string Title
+        {
+            get
+            {
+                if (!String.IsNullOrEmpty(title))
+                {
+                    return Regex.Replace(title, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty, RegexOptions.IgnoreCase);
+                }
+                return null;
+            }
+            set
+            {
+                title = value;
+            }
+        }
+
+        public string MovieName
+        {
+            get
+            {
+                if (!String.IsNullOrEmpty(Title))
+                {
+                    return Regex.Replace(Title, @"(?<=\S)\s\W\d{4}\W(?=$)", String.Empty);
+                }
+                return null;
+            }
+        }
+
+        public int? Year
+        {
+            get
+            {
+                if (!String.IsNullOrEmpty(Title))
+                {
+                    int year;
+                    if (Int32.TryParse((Regex.Match(Title, @"(?<=\()\d{4}(?=\)$)").Value), out year))
+                    {
+                        return year;
+                    }
+                }
+                return null;
+            }
+        }
+
         public int ChannelId { get; set; }
         public string ChannelName { get; set; }
         public string Description { get; set; }
-        public DateTime EndTime { get; set; }
+        public string Genre { get; set; }
+        public int StopTime { get; set; }
+        public int TimesWatched { get; set; }
+
+        #endregion
+
+        #region Series Informations
 
         private string episodeName;
         public string EpisodeName
@@ -45,28 +102,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         }
 
         public string EpisodePart { get; set; }
-        public string FileName { get; set; }
-        public string Genre { get; set; }
-        public string Id { get; set; }
-        public bool IsChanged { get; set; }
-        public bool IsManual { get; set; }
-        public bool IsRecording { get; set; }
-        public int KeepUntil { get; set; }
-        public DateTime KeepUntilDate { get; set; }
-
-        public string MovieName
-        {
-            get
-            {
-                if (!String.IsNullOrEmpty(Title))
-                {
-                    return Regex.Replace(Title, @"(?<=\S)\s\W\d{4}\W(?=$)", String.Empty);
-                }
-                return null;
-            }
-        }
-
-        public int ScheduleId { get; set; }
 
         public string SeriesNum { get; set; }
         public int? SeasonNumber
@@ -85,42 +120,59 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
             }
         }
 
-        public bool ShouldBeDeleted { get; set; }
-        public DateTime StartTime { get; set; }
-        public int StopTime { get; set; }
-        public int TimesWatched { get; set; }
+        #endregion
 
-        private string title;
-        public string Title
+        #region Timer Informations
+
+        public bool IsChanged { get; set; }
+        public bool IsManual { get; set; }
+        public bool IsRecording { get; set; }
+        public int KeepUntil { get; set; }
+        public bool ShouldBeDeleted { get; set; }
+
+        private DateTime keepUntilDate;
+        public DateTimeOffset KeepUntilDate
         {
             get
             {
-                if (!String.IsNullOrEmpty(title))
-                {
-                    return Regex.Replace(title, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty, RegexOptions.IgnoreCase);
-                }
-                return null;
+                return DateTime.SpecifyKind(keepUntilDate, DateTimeKind.Utc);
             }
             set
             {
-                title = value;
+                keepUntilDate = value.DateTime;
             }
         }
 
-        public int? Year
+        #endregion
+
+        #region DateTime Informations
+
+        private DateTime startTime;
+        public DateTimeOffset StartTime
         {
             get
             {
-                if (!String.IsNullOrEmpty(Title))
-                {
-                    int year;
-                    if (Int32.TryParse((Regex.Match(Title, @"(?<=\()\d{4}(?=\)$)").Value), out year))
-                    {
-                        return year;
-                    }
-                }
-                return null;
+                return DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            }
+            set
+            {
+                startTime = value.DateTime;
             }
         }
+
+        private DateTime endTime;
+        public DateTimeOffset EndTime
+        {
+            get
+            {
+                return DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            }
+            set
+            {
+                endTime = value.DateTime;
+            }
+        }
+
+        #endregion
     }
 }

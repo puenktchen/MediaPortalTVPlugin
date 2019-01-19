@@ -28,13 +28,13 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         public string RecordingFolder { get; set; }
         public int RecordingFormat { get; set; }
         public string RecordingScheduleId { get; set; }
-        public DateTime RecordingStarted { get; set; }
+        public DateTimeOffset RecordingStarted { get; set; }
         public string RemoteServer { get; set; }
         public int SignalLevel { get; set; }
         public int SignalQuality { get; set; }
         public string TimeShiftFileName { get; set; }
         public object TimeShiftFolder { get; set; }
-        public DateTime TimeShiftStarted { get; set; }
+        public DateTimeOffset TimeShiftStarted { get; set; }
         public WebCardType Type { get; set; }
         public User User { get; set; }
     }

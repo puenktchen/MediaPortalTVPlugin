@@ -152,12 +152,12 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
             // Check there is a timer and genres to map
             if (timer != null)
             {
-                if (timer.Genres != null && timer.Genres.Count > 0)
+                if (timer.Genres != null && timer.Genres.Length > 0)
                 {
                     timer.IsMovie = _movieGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    timer.IsSports = _sportGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    timer.IsNews = _newsGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    timer.IsKids = _kidsGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    //timer.IsSports = _sportGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    //timer.IsNews = _newsGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    //timer.IsKids = _kidsGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
                     timer.IsProgramSeries = _seriesGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
                     if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)) && timer.SeriesTimerId != null)
                     {

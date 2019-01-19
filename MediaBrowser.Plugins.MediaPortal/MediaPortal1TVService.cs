@@ -21,7 +21,7 @@ namespace MediaBrowser.Plugins.MediaPortal
     {
         private static StreamingDetails _currentStreamDetails;
 
-        public DateTime LastRecordingChange = DateTime.MinValue;
+        public DateTimeOffset LastRecordingChange = DateTimeOffset.MinValue;
 
         public string HomePageUrl
         {
@@ -131,7 +131,7 @@ namespace MediaBrowser.Plugins.MediaPortal
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
+        public Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTimeOffset startDateUtc, DateTimeOffset endDateUtc, CancellationToken cancellationToken)
         {
             return Task.FromResult(Plugin.TvProxy.GetPrograms(channelId, startDateUtc, endDateUtc, cancellationToken));
         }
@@ -167,7 +167,7 @@ namespace MediaBrowser.Plugins.MediaPortal
         public Task DeleteRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.DeleteRecording(recordingId, cancellationToken);
-            LastRecordingChange = DateTime.UtcNow;
+            LastRecordingChange = DateTimeOffset.UtcNow;
             return Task.Delay(0, cancellationToken);
         }
 
@@ -204,7 +204,7 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            LastRecordingChange = DateTime.UtcNow;
+            LastRecordingChange = DateTimeOffset.UtcNow;
             Plugin.TvProxy.CreateSchedule(cancellationToken, info);
             return Task.Delay(0, cancellationToken);
         }
@@ -212,14 +212,14 @@ namespace MediaBrowser.Plugins.MediaPortal
         public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.ChangeSchedule(cancellationToken, info);
-            LastRecordingChange = DateTime.UtcNow;
+            LastRecordingChange = DateTimeOffset.UtcNow;
             return Task.Delay(0, cancellationToken);
         }
 
         public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
         {
             Plugin.TvProxy.DeleteSchedule(cancellationToken, timerId);
-            LastRecordingChange = DateTime.UtcNow;
+            LastRecordingChange = DateTimeOffset.UtcNow;
             return Task.Delay(0, cancellationToken);
         }
 

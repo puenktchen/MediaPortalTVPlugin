@@ -11,7 +11,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         public string DisplayName { get; set; }
         public string ClientDescription { get; set; }
         public string ClientIPAdress { get; set; }
-        public DateTime StartTime { get; set; }
+        public DateTimeOffset StartTime { get; set; }
         public long StartPosition { get; set; }
         public long PlayerPosition { get; set; }
         public int PercentageProgress { get; set; }

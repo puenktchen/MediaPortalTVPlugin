@@ -102,12 +102,12 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         /// <summary>
         /// The start date of the recording, in UTC.
         /// </summary>
-        public DateTime StartDate { get; set; }
+        public DateTimeOffset StartDate { get; set; }
 
         /// <summary>
         /// The end date of the recording, in UTC.
         /// </summary>
-        public DateTime EndDate { get; set; }
+        public DateTimeOffset EndDate { get; set; }
 
         /// <summary>
         /// Gets or sets the status.
@@ -151,7 +151,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         /// Gets or sets the original air date.
         /// </summary>
         /// <value>The original air date.</value>
-        public DateTime? OriginalAirDate { get; set; }
+        public DateTimeOffset? OriginalAirDate { get; set; }
 
         /// <summary>
         /// Gets or sets the official rating.
@@ -221,7 +221,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
         /// Gets or sets the date last updated.
         /// </summary>
         /// <value>The date last updated.</value>
-        public DateTime DateLastUpdated { get; set; }
+        public DateTimeOffset DateLastUpdated { get; set; }
 
         public MyRecordingInfo()
         {
