@@ -4,12 +4,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-
+using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.MediaPortal.Configuration;
-using MediaBrowser.Plugins.MediaPortal.Interfaces;
-using MediaBrowser.Plugins.MediaPortal.Services.Exceptions;
 
 namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
 {
@@ -29,17 +27,8 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             Serialiser = serialiser;
         }
 
-        /// <summary>
-        /// Gets the plugin configuration.
-        /// </summary>
-        /// <value>
-        /// The plugin configuration.
-        /// </value>
-        public PluginConfiguration Configuration { get { return Plugin.Instance.Configuration;  } }
-
         protected IHttpClient HttpClient { get; private set; }
         public IJsonSerializer Serialiser { get; private set; }
-        public IPluginLogger Logger { get; set; }
 
         /// <summary>
         /// Gets the end point suffix.
@@ -56,9 +45,9 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// <param name="action">The action.</param>
         /// <param name="args">The arguments.</param>
         /// <returns></returns>
-        protected String GetUrl(String action, params object[] args)
+        protected String GetUrl(string url, MediaPortalOptions configuration, String action, params object[] args)
         {
-            return GetUrl(EndPointSuffix, action, args);
+            return GetUrl(url, configuration, EndPointSuffix, action, args);
         }
 
         /// <summary>
@@ -68,57 +57,33 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// <param name="action">The action.</param>
         /// <param name="args">The arguments.</param>
         /// <returns></returns>
-        protected String GetUrl(String endPointSuffixOverride, String action, params object[] args)
+        protected String GetUrl(string url, MediaPortalOptions configuration, String endPointSuffixOverride, String action, params object[] args)
         {
-            if (string.Equals(Configuration.ApiHostName, "localhost", StringComparison.CurrentCultureIgnoreCase) || Configuration.ApiHostName == "127.0.0.1")
+            var baseUrl = String.Format("{0}/MPExtended/{1}/", url.TrimEnd('/'), endPointSuffixOverride);
+
+            if (!string.IsNullOrEmpty(configuration.UserName))
             {
-                Configuration.ApiHostName = LocalIPAddress().ToString();
+                if (Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri uri))
+                {
+                    var builder = new UriBuilder(uri);
+                    builder.UserName = configuration.UserName;
+                    builder.Password = configuration.Password;
+
+                    // make sure it has a trailing /
+                    baseUrl = builder.Uri.ToString().TrimEnd('/') + "/";
+                }
             }
 
-            var baseUrl = String.Format("http://{0}:{1}/MPExtended/{2}/", Configuration.ApiHostName, Configuration.ApiPortNumber, endPointSuffixOverride);
             return String.Concat(baseUrl, String.Format(action, args));
-
-            //if (Configuration.RequiresAuthentication)
-            //{
-            //    var baseUrl = String.Format("http://{0}:{1}@{2}:{3}/MPExtended/{4}/", Configuration.UserName, Configuration.Password, Configuration.ApiHostName, Configuration.ApiPortNumber, endPointSuffixOverride);
-            //    return String.Concat(baseUrl, String.Format(action, args));
-            //}
-            //else
-            //{
-            //    var baseUrl = String.Format("http://{0}:{1}/MPExtended/{2}/", Configuration.ApiHostName, Configuration.ApiPortNumber, endPointSuffixOverride);
-            //    return String.Concat(baseUrl, String.Format(action, args));
-            //}        
         }
 
-        /// <summary>
-        /// Retrieves data from the service for a given action
-        /// </summary>
-        /// <typeparam name="TResult">The type of the result.</typeparam>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="action">The action.</param>
-        /// <param name="args">The arguments.</param>
-        /// <returns></returns>
-        /// <exception cref="MediaBrowser.Plugins.MediaPortal.Services.Exceptions.ServiceAuthenticationException">There was a problem authenticating with the MP service</exception>
-        protected TResult GetFromService<TResult>(CancellationToken cancellationToken, String action, params object[] args)
+        protected async Task<TResult> GetFromServiceAsync<TResult>(string url, MediaPortalOptions configuration, CancellationToken cancellationToken, String action, params object[] args)
         {
-            var request = CreateRequest(cancellationToken, action, args);
-            try
-            {
-                var task = HttpClient.Get(request);
-                using (var stream = task.Result)
-                {
-                    return Serialiser.DeserializeFromStream<TResult>(stream);
-                }
-            }
-            catch (AggregateException aggregateException)
-            {
-                var exception = aggregateException.Flatten().InnerExceptions.OfType<MediaBrowser.Model.Net.HttpException>().FirstOrDefault();
-                if (exception != null && exception.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    throw new ServiceAuthenticationException("There was a problem authenticating with the MP service", exception);    
-                }
+            var request = CreateRequest(url, configuration, cancellationToken, action, args);
 
-                throw;
+            using (var stream = await HttpClient.Get(request).ConfigureAwait(false))
+            {
+                return await Serialiser.DeserializeFromStreamAsync<TResult>(stream).ConfigureAwait(false);
             }
         }
 
@@ -128,21 +93,20 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// <param name="action">The action.</param>
         /// <param name="args">The arguments.</param>
         /// <returns></returns>
-        private HttpRequestOptions CreateRequest(String action, params object[] args)
+        private HttpRequestOptions CreateRequest(string url, MediaPortalOptions configuration, String action, params object[] args)
         {
-            var configuration = Plugin.Instance.Configuration;
             var request = new HttpRequestOptions()
             {
-                Url = GetUrl(action, args),
+                Url = GetUrl(url, configuration, action, args),
                 RequestContentType = "application/json",
                 LogErrorResponseBody = true,
                 LogRequest = true,
             };
 
-            if (configuration.RequiresAuthentication)
+            if (!string.IsNullOrEmpty(configuration.UserName))
             {
                 // Add headers?
-                string authInfo = String.Format("{0}:{1}", configuration.UserName, configuration.Password);
+                string authInfo = String.Format("{0}:{1}", configuration.UserName, configuration.Password ?? string.Empty);
                 authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
                 request.RequestHeaders["Authorization"] = "Basic " + authInfo;
             }
@@ -150,23 +114,11 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             return request;
         }
 
-        private HttpRequestOptions CreateRequest(CancellationToken cancellationToken, String action, params object[] args)
+        private HttpRequestOptions CreateRequest(string url, MediaPortalOptions configuration, CancellationToken cancellationToken, String action, params object[] args)
         {
-            var request = CreateRequest(action, args);
+            var request = CreateRequest(url, configuration, action, args);
             request.CancellationToken = cancellationToken;
             return request;
-        }
-
-        private IPAddress LocalIPAddress()
-        {
-            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-            {
-                return null;
-            }
-
-            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
-
-            return host.AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
     }
 }

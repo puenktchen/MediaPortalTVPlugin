@@ -76,23 +76,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
 
         #endregion
 
-        #region Timer Informations
-
-        public bool HasConflict { get; set; }
-        public bool IsChanged { get; set; }
-        public bool IsPartialRecordingSeriesPending { get; set; }
-        public bool IsRecording { get; set; }
-        public bool IsRecordingManual { get; set; }
-        public bool IsRecordingOnce { get; set; }
-        public bool IsRecordingOncePending { get; set; }
-        public bool IsRecordingSeries { get; set; }
-        public bool IsRecordingSeriesPending { get; set; }
-        public bool IsRecordingSeriesCanceled { get; set; }
-        public bool IsScheduled { get; set; }
-        public bool Notify { get; set; }
-
-        #endregion
-
         #region DateTime Informations
 
         private DateTime startTime;

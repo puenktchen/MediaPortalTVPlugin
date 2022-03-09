@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
@@ -11,9 +11,6 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.MediaPortal.Configuration;
-using MediaBrowser.Plugins.MediaPortal.Helpers;
-using MediaBrowser.Plugins.MediaPortal.Interfaces;
 using MediaBrowser.Plugins.MediaPortal.Services.Proxies;
 using System.IO;
 using MediaBrowser.Model.Drawing;
@@ -23,35 +20,30 @@ namespace MediaBrowser.Plugins.MediaPortal
     /// <summary>
     /// Class Plugin
     /// </summary>
-    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages, IHasThumbImage
+    public class Plugin : BasePlugin, IHasWebPages, IHasThumbImage, IHasTranslations
     {
         public static TvServiceProxy TvProxy { get; private set; }
         public static StreamingServiceProxy StreamingProxy { get; private set; }
 
-        public static IPluginLogger Logger { get; set; }
+        public static ILogger Logger { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Plugin" /> class.
         /// </summary>
-        /// <param name="applicationPaths">The application paths.</param>
-        /// <param name="xmlSerializer">The XML serializer.</param>
-        /// <param name="httpClient">The HTTP client.</param>
-        /// <param name="jsonSerializer">The json serializer.</param>
-        /// <param name="networkManager">The network manager.</param>
-        /// <param name="logger">The logger.</param>
-        public Plugin(
-            IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IHttpClient httpClient,
-            IJsonSerializer jsonSerializer, INetworkManager networkManager, ILogger logger, TmdbLookup tmdbLookup)
-            : base(applicationPaths, xmlSerializer)
+        public Plugin(IHttpClient httpClient,
+            IJsonSerializer jsonSerializer, ILogger logger)
+            : base()
         {
             Instance = this;
 
-            Logger = new PluginLogger(logger);
+            Logger = logger;
 
             // Create our shared service proxies
-            StreamingProxy = new StreamingServiceProxy(httpClient, jsonSerializer, networkManager);
-            TvProxy = new TvServiceProxy(httpClient, jsonSerializer, StreamingProxy, tmdbLookup);
+            StreamingProxy = new StreamingServiceProxy(httpClient, jsonSerializer);
+            TvProxy = new TvServiceProxy(httpClient, jsonSerializer, StreamingProxy);
         }
+
+        public static string StaticName = "MediaPortal";
 
         /// <summary>
         /// Gets the name of the plugin
@@ -59,7 +51,7 @@ namespace MediaBrowser.Plugins.MediaPortal
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "MediaPortal TV Plugin"; }
+            get { return StaticName; }
         }
 
         /// <summary>
@@ -100,34 +92,38 @@ namespace MediaBrowser.Plugins.MediaPortal
         /// <value>The instance.</value>
         public static Plugin Instance { get; private set; }
 
-        /// <summary>
-        /// Holds our registration information
-        /// </summary>
-        public MBRegistrationRecord Registration { get; set; }
-
-        /// <summary>
-        /// Updates the configuration.
-        /// </summary>
-        /// <param name="configuration">The configuration.</param>
-        public override void UpdateConfiguration(BasePluginConfiguration configuration)
-        {
-            var oldConfig = Configuration;
-
-            base.UpdateConfiguration(configuration);
-
-            ServerEntryPoint.Instance.OnConfigurationUpdated(oldConfig, (PluginConfiguration)configuration);
-        }
-
         public IEnumerable<PluginPageInfo> GetPages()
         {
-            return new[]
+            return new PluginPageInfo[]
             {
                 new PluginPageInfo
                 {
-                    Name = "MediaPortal",
-                    EmbeddedResourcePath = "MediaBrowser.Plugins.MediaPortal.Configuration.configPage.html"
+                    Name = "mediaportal",
+                    EmbeddedResourcePath = GetType().Namespace + ".web.mediaportal.html",
+                    IsMainConfigPage = false
+                },
+                new PluginPageInfo
+                {
+                    Name = "mediaportaljs",
+                    EmbeddedResourcePath = GetType().Namespace + ".web.mediaportal.js"
                 }
             };
+        }
+
+        public TranslationInfo[] GetTranslations()
+        {
+            var basePath = GetType().Namespace + ".strings.";
+
+            return GetType()
+                .Assembly
+                .GetManifestResourceNames()
+                .Where(i => i.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
+                .Select(i => new TranslationInfo
+                {
+                    Locale = Path.GetFileNameWithoutExtension(i.Substring(basePath.Length)),
+                    EmbeddedResourcePath = i
+
+                }).ToArray();
         }
     }
 }
