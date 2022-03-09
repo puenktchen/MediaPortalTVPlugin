@@ -9,7 +9,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Helpers
 {
     public static class GeneralExtensions
     {
-        public static String ToUrlDate(this DateTime value)
+        public static String ToUrlDate(this DateTimeOffset value)
         {
             return value.ToString("s");
         }
