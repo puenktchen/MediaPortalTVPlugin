@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
+namespace MediaBrowser.Plugins.MediaPortal.Entities
 {
     public class TranscoderProfile
     {

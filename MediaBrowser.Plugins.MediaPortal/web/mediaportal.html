@@ -1,0 +1,114 @@
+﻿<div is="emby-scroller" class="view flex flex-direction-column scrollFrameY flex-grow" data-mousewheel="true" data-horizontal="false" data-centerfocus="card" data-controller="__plugin/mediaportaljs" data-title="${HeaderTVSourceSetup}">
+    <div class="scrollSlider flex-grow flex-direction-column padded-left padded-left-page padded-right padded-top-page padded-bottom-page settingsContainer">
+        <form class="auto-center">
+            <div class="verticalSection">
+
+                <div>
+                    <h3 class="typeName">MediaPortal</h3>
+                </div>
+
+                <div class="inputContainer fldPath">
+                    <div class="flex align-items-center">
+                        <div class="flex-grow">
+                            <input is="emby-input" type="text" class="txtDevicePath" label="MPExtended base url:" required="required" autocomplete="off" />
+                            <div class="fieldDescription">
+                                For example: http://localhost:4322
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inputContainer fldFriendlyName hide">
+                    <input is="emby-input" type="text" class="txtFriendlyName" label="${LabelFriendlyName}" autocomplete="off" />
+                </div>
+
+                <div class="inputContainer">
+                    <input is="emby-input" class="txtUsername" type="text" label="Username:" />
+                    <div class="fieldDescription">
+                        The username specified in MPExtended - Authentication
+                    </div>
+                </div>
+                <div class="inputContainer">
+                    <input is="emby-input" class="txtPassword" type="text" label="Password:" />
+                    <div class="fieldDescription">
+                        The password specified in MPExtended - Authentication
+                    </div>
+                </div>
+
+                <br />
+
+                <div class="selectContainer">
+                    <select is="emby-select" id="selectTranscoderProfile" data-mini="true" label="MPExtended transcoding profile:"></select>
+                </div>
+
+                <br />
+
+                <div class="selectContainer">
+                    <select is="emby-select" id="selectTvChannelGroup" data-mini="true" label="MediaPortal tv channel group:"></select>
+                </div>
+                <label class="checkboxContainer">
+                    <input is="emby-checkbox" type="checkbox" id="chkImportRadioChannels" />
+                    <span>Import radio channels</span>
+                </label>
+                <div class="selectContainer">
+                    <select is="emby-select" id="selectRadioChannelGroup" data-mini="true" label="MediaPortal radio channel group:"></select>
+                </div>
+
+                <br />
+
+                <div is="emby-collapse" title="Mapping of MediaPortal program guide genres to Emby categories">
+                    <div class="collapseContent">
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtEducationalGenre" label="Educational program:" />
+                            <div class="fieldDescription">
+                                Example: Documentary|Animals|Travelling
+                            </div>
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtKidsGenre" name="txtKidsGenre" label="Kids program:" />
+                            <div class="fieldDescription">
+                                Example: Cartoon|Animation
+                            </div>
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtLiveGenre" name="txtLiveGenre" label="Live program:" />
+                            <div class="fieldDescription">
+                                Example: Live Gameshow|Live Sports
+                            </div>
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtMovieGenre" label="Movie program:" />
+                            <div class="fieldDescription">
+                                Example: Movie|Film|TV Movie
+                            </div>
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtNewsGenre" name="txtNewsGenre" label="News program:" />
+                            <div class="fieldDescription">
+                                Example: News Report|Daily News
+                            </div>
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtSportsGenre" name="txtSportsGenre" label="Sports program:" />
+                            <div class="fieldDescription">
+                                Example: Sport|Football
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <br />
+
+            <div>
+                <button is="emby-button" type="submit" class="raised button-submit block">
+                    <span>${Save}</span>
+                </button>
+                <button is="emby-button" type="button" class="raised button-cancel block btnCancel">
+                    <span>${Cancel}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

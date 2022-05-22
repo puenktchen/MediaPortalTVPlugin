@@ -1,67 +1,21 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
+namespace MediaBrowser.Plugins.MediaPortal.Entities
 {
-    public class Recording
+    public class Program
     {
         #region General Informations
 
-        public string Id { get; set; }
-        public int ScheduleId { get; set; }
-        public string FileName { get; set; }
-
-        private string title;
-        public string Title
-        {
-            get
-            {
-                if (!String.IsNullOrEmpty(title))
-                {
-                    return Regex.Replace(title, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty, RegexOptions.IgnoreCase);
-                }
-                return null;
-            }
-            set
-            {
-                title = value;
-            }
-        }
-
-        public string MovieName
-        {
-            get
-            {
-                if (!String.IsNullOrEmpty(Title))
-                {
-                    return Regex.Replace(Title, @"(?<=\S)\s\W\d{4}\W(?=$)", String.Empty);
-                }
-                return null;
-            }
-        }
-
-        public int? Year
-        {
-            get
-            {
-                if (!String.IsNullOrEmpty(Title))
-                {
-                    int year;
-                    if (Int32.TryParse((Regex.Match(Title, @"(?<=\()\d{4}(?=\)$)").Value), out year))
-                    {
-                        return year;
-                    }
-                }
-                return null;
-            }
-        }
-
+        public int Id { get; set; }
         public int ChannelId { get; set; }
-        public string ChannelName { get; set; }
+        public string Title { get; set; }
         public string Description { get; set; }
         public string Genre { get; set; }
-        public int StopTime { get; set; }
-        public int TimesWatched { get; set; }
+        public int ParentalRating { get; set; }
+        public string Classification { get; set; }
+        public int StarRating { get; set; }
+        public int DurationInMinutes { get; set; }
 
         #endregion
 
@@ -122,29 +76,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
 
         #endregion
 
-        #region Timer Informations
-
-        public bool IsChanged { get; set; }
-        public bool IsManual { get; set; }
-        public bool IsRecording { get; set; }
-        public int KeepUntil { get; set; }
-        public bool ShouldBeDeleted { get; set; }
-
-        private DateTime keepUntilDate;
-        public DateTimeOffset KeepUntilDate
-        {
-            get
-            {
-                return DateTime.SpecifyKind(keepUntilDate, DateTimeKind.Utc);
-            }
-            set
-            {
-                keepUntilDate = value.DateTime;
-            }
-        }
-
-        #endregion
-
         #region DateTime Informations
 
         private DateTime startTime;
@@ -170,6 +101,35 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
             set
             {
                 endTime = value.DateTime;
+            }
+        }
+
+        private DateTime originalAirDate;
+        public DateTimeOffset OriginalAirDate
+        {
+            get
+            {
+                return DateTime.SpecifyKind(originalAirDate, DateTimeKind.Utc);
+            }
+            set
+            {
+                originalAirDate = value.DateTime;
+            }
+        }
+
+        public int? ProductionYear
+        {
+            get
+            {
+                if (!String.IsNullOrEmpty(Title))
+                {
+                    int year;
+                    if (Int32.TryParse((Regex.Match(Title, @"(?<=\()\d{4}(?=\)$)").Value), out year))
+                    {
+                        return year;
+                    }
+                }
+                return null;
             }
         }
 

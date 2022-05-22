@@ -3,169 +3,85 @@ using System.Collections.Generic;
 using System.Linq;
 
 using MediaBrowser.Controller.LiveTv;
-using MediaBrowser.Plugins.MediaPortal.Configuration;
-using MediaBrowser.Plugins.MediaPortal.Services.Entities;
 
 namespace MediaBrowser.Plugins.MediaPortal.Helpers
 {
-    /// <summary>
-    /// Provides methods to map MediaPortal genres to Emby categories
-    /// </summary>
     public class GenreMapper
-    {
-        public const string GENRE_MOVIE = "GENREMOVIE";
-        public const string GENRE_SERIES = "GENRESERIES";
-        public const string GENRE_SPORT = "GENRESPORT";
-        public const string GENRE_NEWS = "GENRENEWS";
+    {       
+        public const string GENRE_EDUCATIONAL = "GENREEDUCATIONAL";
         public const string GENRE_KIDS = "GENREKIDS";
         public const string GENRE_LIVE = "GENRELIVE";
+        public const string GENRE_MOVIE = "GENREMOVIE";
+        public const string GENRE_NEWS = "GENRENEWS";
+        public const string GENRE_SPORT = "GENRESPORT";
+        
+        private readonly List<string> EducationalGenres;
+        private readonly List<string> KidsGenres;
+        private readonly List<string> LiveGenres;
+        private readonly List<string> MovieGenres;
+        private readonly List<string> NewsGenres;
+        private readonly List<string> SportGenres;
 
-        private readonly PluginConfiguration _configuration;
-        private readonly List<String> _movieGenres;
-        private readonly List<String> _seriesGenres;
-        private readonly List<String> _sportGenres;
-        private readonly List<String> _newsGenres;
-        private readonly List<String> _kidsGenres;
-        private readonly List<String> _liveGenres;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GenreMapper"/> class.
-        /// </summary>
-        /// <param name="configuration">The configuration.</param>
-        public GenreMapper(PluginConfiguration configuration)
+        public GenreMapper(MediaPortalOptions configuration)
         {
-            _configuration = configuration ?? throw new ArgumentNullException("configuration");
+            EducationalGenres = new List<string>();
+            KidsGenres = new List<string>();
+            LiveGenres = new List<string>();
+            MovieGenres = new List<string>();
+            NewsGenres = new List<string>();
+            SportGenres = new List<string>();
 
-            _movieGenres = new List<string>();
-            _seriesGenres = new List<string>();
-            _sportGenres = new List<string>();
-            _newsGenres = new List<string>();
-            _kidsGenres = new List<string>();
-            _liveGenres = new List<string>();
-
-            LoadInternalLists(_configuration.GenreMappings);
+            LoadInternalLists(configuration.GenreMappings);
         }
 
         private void LoadInternalLists(Dictionary<string, List<string>> genreMappings)
         {
             if (genreMappings != null)
             {
-                if (_configuration.GenreMappings.ContainsKey(GENRE_MOVIE) && _configuration.GenreMappings[GENRE_MOVIE] != null)
+                if (genreMappings.ContainsKey(GENRE_EDUCATIONAL) && genreMappings[GENRE_EDUCATIONAL] != null)
                 {
-                    _movieGenres.AddRange(_configuration.GenreMappings[GENRE_MOVIE]);
+                    EducationalGenres.AddRange(genreMappings[GENRE_EDUCATIONAL]);
                 }
 
-                if (_configuration.GenreMappings.ContainsKey(GENRE_SERIES) && _configuration.GenreMappings[GENRE_SERIES] != null)
+                if (genreMappings.ContainsKey(GENRE_KIDS) && genreMappings[GENRE_KIDS] != null)
                 {
-                    _seriesGenres.AddRange(_configuration.GenreMappings[GENRE_SERIES]);
+                    KidsGenres.AddRange(genreMappings[GENRE_KIDS]);
                 }
 
-                if (_configuration.GenreMappings.ContainsKey(GENRE_SPORT) && _configuration.GenreMappings[GENRE_SPORT] != null)
+                if (genreMappings.ContainsKey(GENRE_LIVE) && genreMappings[GENRE_LIVE] != null)
                 {
-                    _sportGenres.AddRange(_configuration.GenreMappings[GENRE_SPORT]);
+                    LiveGenres.AddRange(genreMappings[GENRE_LIVE]);
                 }
 
-                if (_configuration.GenreMappings.ContainsKey(GENRE_NEWS) && _configuration.GenreMappings[GENRE_NEWS] != null)
+                if (genreMappings.ContainsKey(GENRE_MOVIE) && genreMappings[GENRE_MOVIE] != null)
                 {
-                    _newsGenres.AddRange(_configuration.GenreMappings[GENRE_NEWS]);
+                    MovieGenres.AddRange(genreMappings[GENRE_MOVIE]);
                 }
 
-                if (_configuration.GenreMappings.ContainsKey(GENRE_KIDS) && _configuration.GenreMappings[GENRE_KIDS] != null)
+                if (genreMappings.ContainsKey(GENRE_NEWS) && genreMappings[GENRE_NEWS] != null)
                 {
-                    _kidsGenres.AddRange(_configuration.GenreMappings[GENRE_KIDS]);
+                    NewsGenres.AddRange(genreMappings[GENRE_NEWS]);
                 }
 
-                if (_configuration.GenreMappings.ContainsKey(GENRE_LIVE) && _configuration.GenreMappings[GENRE_LIVE] != null)
+                if (genreMappings.ContainsKey(GENRE_SPORT) && genreMappings[GENRE_SPORT] != null)
                 {
-                    _liveGenres.AddRange(_configuration.GenreMappings[GENRE_LIVE]);
+                    SportGenres.AddRange(genreMappings[GENRE_SPORT]);
                 }
             }
         }
 
-        /// <summary>
-        /// Populates the program genres.
-        /// </summary>
-        /// <param name="program">The program.</param>
-        public void PopulateProgramGenres(ProgramInfo program)
+        public void SetProgramCategories(ProgramInfo program)
         {
-            // Check there is a program and genres to map
             if (program != null)
             {
-                if (program.Genres != null && program.Genres.Count > 0)
+                if (program.Genres.Any() == true)
                 {
-                    program.IsMovie = _movieGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    program.IsSports = _sportGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    program.IsNews = _newsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    program.IsKids = _kidsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    program.IsLive = _liveGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    program.IsSeries = _seriesGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    if (program.IsSeries)
-                    {
-                        program.IsPremiere = true;
-                    }
-                    if (program.IsSports || program.IsNews || program.IsKids || program.IsLive)
-                    {
-                        program.IsSeries = true;
-                    }
-                    if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)))
-                    {
-                        program.IsSeries = true;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Populates the recording genres.
-        /// </summary>
-        /// <param name="recording">The recording.</param>
-        public void PopulateRecordingGenres(MyRecordingInfo recording)
-        {
-            // Check there is a recording and genres to map
-            if (recording != null)
-            {
-                if (recording.Genres != null && recording.Genres.Count > 0)
-                {
-                    recording.IsMovie = _movieGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    recording.IsSports = _sportGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    recording.IsNews = _newsGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    recording.IsKids = _kidsGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    recording.IsLive = _liveGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    recording.IsSeries = _seriesGenres.Any(g => recording.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)) && recording.EpisodeNumber.HasValue)
-                    {
-                        if (!recording.IsMovie && !recording.IsSports && !recording.IsNews && !recording.IsKids && !recording.IsLive)
-                        {
-                            recording.IsSeries = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Populates the timer genres.
-        /// </summary>
-        /// <param name="recording">The timer.</param>
-        public void PopulateTimerGenres(TimerInfo timer)
-        {
-            // Check there is a timer and genres to map
-            if (timer != null)
-            {
-                if (timer.Genres != null && timer.Genres.Length > 0)
-                {
-                    timer.IsMovie = _movieGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    //timer.IsSports = _sportGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    //timer.IsNews = _newsGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    //timer.IsKids = _kidsGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    timer.IsProgramSeries = _seriesGenres.Any(g => timer.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
-                    if (_seriesGenres.All(g => string.IsNullOrWhiteSpace(g)) && timer.SeriesTimerId != null)
-                    {
-                        if (!timer.IsMovie && !timer.IsSports && !timer.IsNews && !timer.IsKids && !timer.IsLive)
-                        {
-                            timer.IsProgramSeries = true;
-                        }
-                    }
+                    program.IsEducational = EducationalGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase)); 
+                    program.IsKids = KidsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    program.IsLive = LiveGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    program.IsMovie = MovieGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    program.IsNews = NewsGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
+                    program.IsSports = SportGenres.Any(g => program.Genres.Contains(g, StringComparer.InvariantCultureIgnoreCase));
                 }
             }
         }
