@@ -1,28 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using MediaBrowser.Controller;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Model.MediaInfo;
-using MediaBrowser.Model.Dlna;
-using MediaBrowser.Controller.Library;
+
 
 namespace MediaBrowser.Plugins.MediaPortal
 {
-    /// <summary>
-    /// Provides MP (v1) integration for Emby
-    /// </summary>
-    public class MediaPortal1TvService : BaseTunerHost
+    public class MediaPortal1TvService : BaseTunerHost, ITunerHost
     {
-        public MediaPortal1TvService(IServerApplicationHost applicationHost)
-            : base(applicationHost)
+        public static MediaPortal1TvService Instance { get; private set; }
+
+        public MediaPortal1TvService(IServerApplicationHost applicationHost) : base(applicationHost)
         {
+            Instance = this;
         }
 
         public override string Name => Plugin.StaticName;
@@ -52,7 +49,7 @@ namespace MediaBrowser.Plugins.MediaPortal
             var config = GetProviderOptions<MediaPortalOptions>(tuner);
             var baseUrl = tuner.Url;
 
-            var channels = await Plugin.TvProxy.GetChannels(baseUrl, config, cancellationToken).ConfigureAwait(false);
+            var channels = await Plugin.TVService.GetChannels(baseUrl, config, cancellationToken).ConfigureAwait(false);
 
             foreach (var channel in channels)
             {
@@ -60,7 +57,7 @@ namespace MediaBrowser.Plugins.MediaPortal
                 channel.Id = CreateEmbyChannelId(tuner, channel.Id);
             }
 
-            return channels.ToList();
+            return channels;
         }
 
         protected override async Task<List<ProgramInfo>> GetProgramsInternal(TunerHostInfo tuner, string tunerChannelId, DateTimeOffset startDateUtc, DateTimeOffset endDateUtc, CancellationToken cancellationToken)
@@ -68,53 +65,45 @@ namespace MediaBrowser.Plugins.MediaPortal
             var config = GetProviderOptions<MediaPortalOptions>(tuner);
             var baseUrl = tuner.Url;
 
-            var list = await Plugin.TvProxy.GetPrograms(baseUrl, config, tunerChannelId, startDateUtc, endDateUtc, cancellationToken).ConfigureAwait(false);
+            var programs = await Plugin.TVService.GetPrograms(baseUrl, config, tunerChannelId, startDateUtc, endDateUtc, cancellationToken).ConfigureAwait(false);
 
-            foreach (var item in list)
+            foreach (var program in programs)
             {
-                item.ChannelId = tunerChannelId;
-                item.Id = GetProgramEntryId(item.ShowId, item.StartDate, item.ChannelId);
+                program.ChannelId = tunerChannelId;
+                program.Id = GetProgramEntryId(program.ShowId, program.StartDate, program.ChannelId);
             }
 
-            return list;
+            return programs;
         }
 
         protected override Task<List<MediaSourceInfo>> GetChannelStreamMediaSources(TunerHostInfo tuner, BaseItem dbChannnel, ChannelInfo tunerChannel, CancellationToken cancellationToken)
         {
-            var mediaSource = new MediaSourceInfo
-            {
-                // this is dummy info and will be opened in GetChannelStream, based on our setting of RequiresOpening=true
-                // just make sure that it is predictable and returns the same result each time
-                Path = "http://mp-direct/" + tunerChannel.Id.GetMD5().ToString("N"),
-                Protocol = MediaProtocol.Http,
+            var mediaPortalChannelId = GetTunerChannelIdFromEmbyChannelId(tuner, tunerChannel.Id);
 
+            var mediaSourceInfo = new MediaSourceInfo
+            {
+                Id = string.Format("{0}_{1:yyyyMMddHHmmss}", mediaPortalChannelId, DateTimeOffset.Now.ToLocalTime()),
+                Container = "ts",
+                IsInfiniteStream = true,
                 RequiresOpening = true,
                 RequiresClosing = true,
-
-                Container = "ts",
-                Id = "direct",
-
-                // this needs review but I'm not sure these values matter at this earlier stage
                 SupportsDirectPlay = false,
                 SupportsDirectStream = true,
-                SupportsTranscoding = true,
-
-                IsInfiniteStream = true
+                SupportsTranscoding = true
             };
 
-            mediaSource.InferTotalBitrate();
+            mediaSourceInfo.InferTotalBitrate();
 
-            return Task.FromResult(new List<MediaSourceInfo> { mediaSource });
+            return Task.FromResult(new List<MediaSourceInfo> { mediaSourceInfo });
         }
 
         protected override async Task<ILiveStream> GetChannelStream(TunerHostInfo tuner, BaseItem dbChannnel, ChannelInfo tunerChannel, string mediaSourceId, CancellationToken cancellationToken)
         {
             var config = GetProviderOptions<MediaPortalOptions>(tuner);
-            var baseUrl = tuner.Url;
 
             var mediaPortalChannelId = GetTunerChannelIdFromEmbyChannelId(tuner, tunerChannel.Id);
 
-            var mediaSource = await Plugin.StreamingProxy.GetLiveTvStream(baseUrl, config, cancellationToken, mediaPortalChannelId, mediaSourceId).ConfigureAwait(false);
+            var mediaSource = await Plugin.StreamingService.GetLiveTvStream(tuner.Url, config, cancellationToken, tunerChannel.ChannelType, mediaPortalChannelId, mediaSourceId).ConfigureAwait(false);
 
             return LiveTvManager.CreateLiveStream(new LiveStreamOptions
             {
@@ -126,16 +115,16 @@ namespace MediaBrowser.Plugins.MediaPortal
 
         public Task CloseLiveStream(ILiveStream liveStream)
         {
-            // TODO: Need a way to get the TunerHostInfo object
+            var tuner = LiveTvManager.GetTunerHostInfo(liveStream.TunerHostId);
+            var config = GetProviderOptions<MediaPortalOptions>(tuner);
+            var identifier = liveStream.MediaSource.Id;
 
-            return Task.CompletedTask;
-            //var tuner = liveStream.TunerHostId;
-            //var config = GetProviderOptions<MediaPortalOptions>(tuner);
-            //var liveStreamId = liveStream.OriginalStreamId;
+            return Plugin.StreamingService.CancelStream(tuner.Url, config, CancellationToken.None, identifier);
+        }
 
-            //var baseUrl = tuner.Url;
-
-            //return Plugin.StreamingProxy.CancelStream(baseUrl, config, CancellationToken.None, liveStreamId);
+        public MediaPortalOptions GetConfiguration(TunerHostInfo tuner)
+        {
+            return GetProviderOptions<MediaPortalOptions>(tuner);
         }
     }
 }

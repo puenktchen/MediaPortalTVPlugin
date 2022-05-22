@@ -1,4 +1,4 @@
-﻿namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
+﻿namespace MediaBrowser.Plugins.MediaPortal.Entities
 {
     public enum WebMediaType
     {

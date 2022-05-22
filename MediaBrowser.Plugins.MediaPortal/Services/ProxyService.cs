@@ -1,27 +1,15 @@
 ﻿using System;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
-using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 
-namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
+namespace MediaBrowser.Plugins.MediaPortal.Services
 {
-    /// <summary>
-    /// Provides base methods for proxy classes
-    /// </summary>
-    public abstract class ProxyBase
+    public abstract class ProxyService
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ProxyBase" /> class.
-        /// </summary>
-        /// <param name="httpClient">The HTTP client.</param>
-        /// <param name="serialiser">The serialiser.</param>
-        protected ProxyBase(IHttpClient httpClient, IJsonSerializer serialiser)
+        protected ProxyService(IHttpClient httpClient, IJsonSerializer serialiser)
         {
             HttpClient = httpClient;
             Serialiser = serialiser;
@@ -37,7 +25,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// The end point suffix.
         /// </value>
         /// <remarks>The value appended after "MPExtended" on the service url</remarks>
-        protected abstract String EndPointSuffix { get; }
+        protected abstract string EndPointSuffix { get; }
 
         /// <summary>
         /// Retrieves a URL for a given action.
@@ -45,7 +33,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// <param name="action">The action.</param>
         /// <param name="args">The arguments.</param>
         /// <returns></returns>
-        protected String GetUrl(string url, MediaPortalOptions configuration, String action, params object[] args)
+        protected string GetUrl(string url, MediaPortalOptions configuration, string action, params object[] args)
         {
             return GetUrl(url, configuration, EndPointSuffix, action, args);
         }
@@ -57,9 +45,9 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
         /// <param name="action">The action.</param>
         /// <param name="args">The arguments.</param>
         /// <returns></returns>
-        protected String GetUrl(string url, MediaPortalOptions configuration, String endPointSuffixOverride, String action, params object[] args)
+        protected string GetUrl(string url, MediaPortalOptions configuration, string endPointSuffixOverride, string action, params object[] args)
         {
-            var baseUrl = String.Format("{0}/MPExtended/{1}/", url.TrimEnd('/'), endPointSuffixOverride);
+            var baseUrl = string.Format("{0}/MPExtended/{1}/", url.TrimEnd('/'), endPointSuffixOverride);
 
             if (!string.IsNullOrEmpty(configuration.UserName))
             {
@@ -69,15 +57,14 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
                     builder.UserName = configuration.UserName;
                     builder.Password = configuration.Password;
 
-                    // make sure it has a trailing /
                     baseUrl = builder.Uri.ToString().TrimEnd('/') + "/";
                 }
             }
 
-            return String.Concat(baseUrl, String.Format(action, args));
+            return string.Concat(baseUrl, string.Format(action, args));
         }
 
-        protected async Task<TResult> GetFromServiceAsync<TResult>(string url, MediaPortalOptions configuration, CancellationToken cancellationToken, String action, params object[] args)
+        protected async Task<TResult> GetFromServiceAsync<TResult>(string url, MediaPortalOptions configuration, CancellationToken cancellationToken, string action, params object[] args)
         {
             var request = CreateRequest(url, configuration, cancellationToken, action, args);
 
@@ -87,13 +74,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             }
         }
 
-        /// <summary>
-        /// Creates a Http request object to be passed into the 
-        /// </summary>
-        /// <param name="action">The action.</param>
-        /// <param name="args">The arguments.</param>
-        /// <returns></returns>
-        private HttpRequestOptions CreateRequest(string url, MediaPortalOptions configuration, String action, params object[] args)
+        private HttpRequestOptions CreateRequest(string url, MediaPortalOptions configuration, string action, params object[] args)
         {
             var request = new HttpRequestOptions()
             {
@@ -105,7 +86,6 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
 
             if (!string.IsNullOrEmpty(configuration.UserName))
             {
-                // Add headers?
                 string authInfo = String.Format("{0}:{1}", configuration.UserName, configuration.Password ?? string.Empty);
                 authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
                 request.RequestHeaders["Authorization"] = "Basic " + authInfo;
@@ -114,7 +94,7 @@ namespace MediaBrowser.Plugins.MediaPortal.Services.Proxies
             return request;
         }
 
-        private HttpRequestOptions CreateRequest(string url, MediaPortalOptions configuration, CancellationToken cancellationToken, String action, params object[] args)
+        private HttpRequestOptions CreateRequest(string url, MediaPortalOptions configuration, CancellationToken cancellationToken, string action, params object[] args)
         {
             var request = CreateRequest(url, configuration, action, args);
             request.CancellationToken = cancellationToken;

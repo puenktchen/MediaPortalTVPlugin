@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace MediaBrowser.Plugins.MediaPortal.Services.Entities
+namespace MediaBrowser.Plugins.MediaPortal.Entities
 {
     public class Program
     {

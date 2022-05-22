@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace MediaBrowser.Plugins.MediaPortal
 {
     public class MediaPortalOptions
     {
-        /// <summary>
-        /// The user name for authenticating with MPExtended
-        /// </summary>
         public string UserName { get; set; }
-
-        /// <summary>
-        /// The password for authenticating with MPExtended
-        /// </summary>
         public string Password { get; set; }
+        public string TranscoderProfile { get; set; }
+        public string TvChannelGroup { get; set; }
+        public string RadioChannelGroup { get; set; }
+        public bool ImportRadioChannels { get; set; }
+        public Dictionary<string, List<string>> GenreMappings { get; set; }
     }
 }

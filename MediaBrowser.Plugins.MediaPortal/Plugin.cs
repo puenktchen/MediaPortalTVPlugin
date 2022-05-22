@@ -1,68 +1,73 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
-
-using MediaBrowser.Controller;
-
-using MediaBrowser.Model.Entities;
+using MediaBrowser.Controller.Drawing;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Controller.MediaEncoding;
+using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.MediaPortal.Services.Proxies;
-using System.IO;
-using MediaBrowser.Model.Drawing;
+
+using MediaBrowser.Plugins.MediaPortal.Helpers;
+using MediaBrowser.Plugins.MediaPortal.Services;
 
 namespace MediaBrowser.Plugins.MediaPortal
 {
-    /// <summary>
-    /// Class Plugin
-    /// </summary>
     public class Plugin : BasePlugin, IHasWebPages, IHasThumbImage, IHasTranslations
     {
-        public static TvServiceProxy TvProxy { get; private set; }
-        public static StreamingServiceProxy StreamingProxy { get; private set; }
-
+        public static Plugin Instance { get; private set; }
+        public static IConfigurationManager ConfigurationManager { get; set; }
+        public static IFfmpegManager FfmpegManager { get; set; }
+        public static IImageProcessor ImageProcessor { get; set; }
+        public static ILiveTvManager LiveTvManager { get; set; }
         public static ILogger Logger { get; set; }
+        public static ImageCreator ImageCreator { get; private set; }
+        public static StreamingService StreamingService { get; private set; }
+        public static TVService TVService { get; private set; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Plugin" /> class.
-        /// </summary>
-        public Plugin(IHttpClient httpClient,
-            IJsonSerializer jsonSerializer, ILogger logger)
+        public Plugin
+        (
+            IHttpClient httpClient,
+            IJsonSerializer jsonSerializer,
+            IConfigurationManager configurationManager,
+            IFfmpegManager ffmpegManager,
+            IImageProcessor imageProcessor,
+            ILiveTvManager liveTvManager,
+            ILogger logger
+        )
             : base()
         {
             Instance = this;
 
+            ConfigurationManager = configurationManager;
+            FfmpegManager = ffmpegManager;
+            ImageProcessor = imageProcessor;
+            LiveTvManager = liveTvManager;
             Logger = logger;
 
-            // Create our shared service proxies
-            StreamingProxy = new StreamingServiceProxy(httpClient, jsonSerializer);
-            TvProxy = new TvServiceProxy(httpClient, jsonSerializer, StreamingProxy);
+            ImageCreator = new ImageCreator();
+            StreamingService = new StreamingService(httpClient, jsonSerializer);
+            TVService = new TVService(httpClient, jsonSerializer);
         }
 
         public static string StaticName = "MediaPortal";
 
-        /// <summary>
-        /// Gets the name of the plugin
-        /// </summary>
-        /// <value>The name.</value>
         public override string Name
         {
             get { return StaticName; }
         }
 
-        /// <summary>
-        /// Gets the description.
-        /// </summary>
-        /// <value>The description.</value>
         public override string Description
         {
             get
             {
-                return "MediaPortal TV Plugin to enable Live TV streaming and scheduling.";
+                return "Live tv plugin to use MediaPortal as a tuner source for Emby";
             }
         }
 
@@ -85,12 +90,6 @@ namespace MediaBrowser.Plugins.MediaPortal
         {
             get { return _id; }
         }
-
-        /// <summary>
-        /// Gets the instance.
-        /// </summary>
-        /// <value>The instance.</value>
-        public static Plugin Instance { get; private set; }
 
         public IEnumerable<PluginPageInfo> GetPages()
         {
