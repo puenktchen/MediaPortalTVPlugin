@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
@@ -82,7 +83,7 @@ namespace MediaBrowser.Plugins.MediaPortal
 
             var mediaSourceInfo = new MediaSourceInfo
             {
-                Id = string.Format("{0}_{1:yyyyMMddHHmmss}", mediaPortalChannelId, DateTimeOffset.Now.ToLocalTime()),
+                Id = "mediaportal_" + mediaPortalChannelId,
                 Container = "ts",
                 IsInfiniteStream = true,
                 RequiresOpening = true,
