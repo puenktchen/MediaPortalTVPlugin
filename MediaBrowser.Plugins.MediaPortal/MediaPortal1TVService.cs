@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
@@ -10,7 +9,6 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.LiveTv;
-
 
 namespace MediaBrowser.Plugins.MediaPortal
 {

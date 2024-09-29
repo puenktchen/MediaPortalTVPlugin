@@ -41,40 +41,30 @@
     }
 
     function selectTranscoderProfiles(view, providerOptions) {
-        fetch(ApiClient.getUrl("MediaPortal/TranscoderProfiles"), {
-            method: "GET",
-        }).then((resp) => resp.json())
-            .then(function (profiles) {
-                view.querySelector('#selectTranscoderProfile').innerHTML = profiles.map(function (profile) {
-                    var selectedText = profile.Name == providerOptions.TranscoderProfile ? " selected" : "";
-                    return '<option value="' + profile.Name + '"' + selectedText + '>' + profile.Name + '</option>';
-                });
+        ApiClient.getJSON(ApiClient.getUrl("MediaPortal/TranscoderProfiles")).then(function (profiles) {
+            view.querySelector('#selectTranscoderProfile').innerHTML = profiles.map(function (profile) {
+                var selectedText = profile.Name == providerOptions.TranscoderProfile ? " selected" : "";
+                return '<option value="' + profile.Name + '"' + selectedText + '>' + profile.Name + '</option>';
             });
+        });
     }
 
     function selectTvChannelGroups(view, providerOptions) {
-        fetch(ApiClient.getUrl("MediaPortal/TvChannelGroups"), {
-            method: "GET",
-        }).then((resp) => resp.json())
-            .then(function (groups) {
-                view.querySelector('#selectTvChannelGroup', view).innerHTML = groups.map(function (group) {
-                    var selectedText = group.Id == providerOptions.TvChannelGroup ? " selected" : "";
-                    return '<option value="' + group.Id + '"' + selectedText + '>' + group.GroupName + '</option>';
-                });
+        ApiClient.getJSON(ApiClient.getUrl("MediaPortal/TvChannelGroups")).then(function (groups) {
+            view.querySelector('#selectTvChannelGroup', view).innerHTML = groups.map(function (group) {
+                var selectedText = group.Id == providerOptions.TvChannelGroup ? " selected" : "";
+                return '<option value="' + group.Id + '"' + selectedText + '>' + group.GroupName + '</option>';
             });
+        });
     }
 
     function selectRadioChannelGroups(view, providerOptions) {
-        fetch(ApiClient.getUrl("MediaPortal/RadioChannelGroups"), {
-            method: "GET",
-        }).then((resp) => resp.json())
-            .then(function (groups) {
-                view.querySelector('#selectRadioChannelGroup', view).innerHTML = groups.map(function (group) {
-                    var selectedText = group.Id == providerOptions.RadioChannelGroup ? " selected" : "";
-                    return '<option value="' + group.Id + '"' + selectedText + '>' + group.GroupName + '</option>';
-                });
+        ApiClient.getJSON(ApiClient.getUrl("MediaPortal/RadioChannelGroups")).then(function (groups) {
+            view.querySelector('#selectRadioChannelGroup', view).innerHTML = groups.map(function (group) {
+                var selectedText = group.Id == providerOptions.RadioChannelGroup ? " selected" : "";
+                return '<option value="' + group.Id + '"' + selectedText + '>' + group.GroupName + '</option>';
             });
-
+        });
     }
 
     function loadGenres(view, providerOptions) {
